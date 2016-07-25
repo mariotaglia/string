@@ -101,7 +101,8 @@ enddo
 
 if (infile.ge.1) then
 do i=1,n
-read(100,*)j,xfile(i)   ! solvent
+read(100,*)j,x1(i) 
+xg1(i) = x1(i)  ! solvent
 enddo   
 endif
 
