@@ -15,6 +15,7 @@ integer i,j,k1,k2,ii, jj,iz       ! dummy indices
 integer err
 integer n
 real*8 algo
+real*8 algo2
 real*8 xtotal(1-Xulimit:ntot+Xulimit)
 
 shift = 1.0d100
@@ -77,7 +78,14 @@ do i = 1, n
  algo = algo + f(i)**2
 end do
 
-PRINT*, iter, algo
+algo2 = 0.0  
+do i = 1, n
+ algo2 = algo2+avpol(i)
+enddo
+algo2 = algo2*delta/(vpol*vsol)/2/sigma
+
+
+PRINT*, iter, algo, algo2
 norma=algo
 
 return
