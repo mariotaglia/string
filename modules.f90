@@ -28,7 +28,8 @@ real*8, allocatable :: avsol(:) ! volume fraction polymers already adsorbed
 real*8, allocatable :: pro(:)   ! probabilities
 integer*1, allocatable :: in1n(:,:)
 real*8 sigma
-
+real*8 sigmas(100), sts(100)
+integer nst, nsigma
 integer iter              ! counts number of iterations
 endmodule
 

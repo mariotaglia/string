@@ -18,7 +18,8 @@ read(8,*),nada
 read(8,*)long
 
 READ(8,*),nada
-read(8,*),sigma
+read(8,*),nsigma
+read(8,*), (sigmas(i), i=1, nsigma)
 
 READ(8,*),nada
 read(8,*),error
@@ -33,6 +34,7 @@ read(8,*)nada
 read(8,*)Xulimit
 
 read(8,*)nada
-read(8,*)st
+read(8,*)nst
+read(8,*), (sts(i), i=1, nst)
 
 end

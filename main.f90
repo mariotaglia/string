@@ -20,7 +20,7 @@ use volume
 use bulk
 use seed1
 use longs
-
+use kai
 implicit none
 
 integer ncha
@@ -28,6 +28,7 @@ integer *4 ier ! Kinsol error flag
 real*8 pi ! pi
 real*8 Na ! avogadros' number              
 parameter (Na=6.02d23)
+integer cc,ccc
 
 real*8 x1(ntot),xg1(ntot)   ! density solvent iteration vector
 real*8 zc(ntot)           ! z-coordinate layer 
@@ -62,7 +63,6 @@ integer countfileuno     ! enumerates the outputfiles para una corrida
 integer conf              ! counts number of conformations
 
 integer readsalt          !integer to read salt concentrations
-INTEGER cc, ccc
 
 seed=435               ! seed for random number generator
 
@@ -148,8 +148,15 @@ print*,"Chains ready"
 !     initializations of input depended variables 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-countfileuno = 1
-countfile = 1
+do cc = 1, nst
+do ccc = 1, nsigma
+
+st=sts(cc)
+sigma=sigmas(ccc)
+
+countfileuno=cc
+countfile=ccc
+
 iter=0                    ! iteration counter
 
 do i=1,n             ! initial gues for x1
@@ -201,6 +208,9 @@ CLOSE(321)
 close(330)
 
 call free_energy
+
+enddo
+enddo
 
 stop
 
