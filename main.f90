@@ -128,15 +128,17 @@ do j=1,ncha
    flag = 0
       do k=1,long
         temp=int(chains(1,k,j)/delta)+1  ! put segments into the correct layer
-           if(temp.le.ntot) then 
-             in1n(newcuantas+1,temp) =  in1n(newcuantas+1,temp) + 1
-           else
-             flag = 1
-           endif
+           if(temp.gt.ntot)flag = 1
       enddo ! k
-      if(flag.eq.0)newcuantas=newcuantas+1
-   endif
 
+      if(flag.eq.0) then
+      newcuantas=newcuantas+1
+       do k=1,long
+        temp=int(chains(1,k,j)/delta)+1  ! put segments into the correct layer
+        in1n(newcuantas,temp) =  in1n(newcuantas,temp) + 1
+       enddo ! k
+      endif
+   endif
 enddo ! j
 enddo ! while
 
