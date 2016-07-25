@@ -40,7 +40,7 @@ F_tot = F_tot + F_Mix_s
 F_Conf = 0.0
 
 do i = 1, cuantas
-   F_Conf = F_Conf + (pro(i)/q)*dlog((pro(i))/q)/vsol*delta*sigma
+   F_Conf = F_Conf + (pro(i)/q)*dlog((pro(i))/q)*sigma
 enddo
 
 F_tot = F_tot + F_Conf
@@ -74,12 +74,12 @@ F_tot2 = 0.0
 sumrho=0.0
 sumpi = 0.0
 
-do i=1,ntot
+do iz=1,ntot
             
-  sumpi = sumpi+dlog(avsol(i))     
+  sumpi = sumpi+dlog(avsol(iz))     
   sumpi = sumpi-dlog(xsolbulk)     
 
-  sumrho = sumrho + ( - avsol(i) )! sum over  rho_i i=+,-,si
+  sumrho = sumrho + ( - avsol(iz) )! sum over  rho_i i=+,-,si
   sumrho = sumrho - ( - xsolbulk )! sum over  rho_i i=+,-,si
 
 enddo
@@ -87,7 +87,7 @@ enddo
 sumpi = (delta/vsol)*sumpi
 sumrho = (delta/vsol)*sumrho
 
-F_tot2 = -(delta/(vsol))*sigma*dlog(q) + sumpi + sumrho -F_vdW 
+F_tot2 = -sigma*dlog(q) + sumpi + sumrho -F_vdW 
 
 print*, 'fe: Free energy 2:', F_tot2
 
