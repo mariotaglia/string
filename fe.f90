@@ -39,11 +39,11 @@ F_tot = F_tot + F_Mix_s
 
 F_Conf = 0.0
 
-do i = 1, cuantas
-   F_Conf = F_Conf + (pro(i)/q)*dlog((pro(i))/q)*sigma
+do i = 1, newcuantas
+   F_Conf = F_Conf + (pro(i)/q)*dlog((pro(i))/q)*2.0*sigma ! it is 2.0*sigma because wa have brushes on both walls
 enddo
 
-F_tot = F_tot + F_Conf
+F_tot = F_tot + F_Conf 
 
 ! 8.vdW ! Ojo, los kai son negativos => atraccion
 
@@ -87,13 +87,13 @@ enddo
 sumpi = (delta/vsol)*sumpi
 sumrho = (delta/vsol)*sumrho
 
-F_tot2 = -sigma*dlog(q) + sumpi + sumrho -F_vdW 
+F_tot2 = -2.0*sigma*dlog(q/shift) + sumpi + sumrho -F_vdW  ! It is 2.0*sigma because we have brush on both walls
 
 print*, 'fe: Free energy 2:', F_tot2
 
 ! Calcula mupol
 
-mupol = -dlog(q)
+mupol = -dlog(q/shift)
  
 
 open(unit=20, file='F_tot.dat', access='append')

@@ -11,6 +11,7 @@ end module
 
 module brush
 
+real*8 shift
 integer, parameter :: ncha_max = 700
 real*8 lseg
 real*8 error              ! error imposed accuaracy
@@ -19,6 +20,7 @@ CHARACTER nada
 
 real*8 norma
 integer cuantas          ! number of polymer configuration or  bound sequences
+integer newcuantas          ! number of polymer configuration or  bound sequences
 
 integer ntot ! lattice sites
 real*8, allocatable :: avpol(:) ! volume fraction polymers already adsorbed

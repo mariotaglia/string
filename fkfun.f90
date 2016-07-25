@@ -17,6 +17,8 @@ integer n
 real*8 algo
 real*8 xtotal(1-Xulimit:ntot+Xulimit)
 
+shift = 1.0d100
+
 n = ntot
 
 do i=1,n                 
@@ -41,9 +43,9 @@ enddo
 !    probability distribution
 q=0.0d0                   ! init q to zero
 
-do i=1,cuantas ! loop over cuantas
+do i=1,newcuantas ! loop over cuantas
 
-pro(i) = 1.0
+pro(i) = shift
 
     do j=1, ntot
      pro(i)= pro(i) * xpot(j)**in1n(i,j)
@@ -53,6 +55,7 @@ pro(i) = 1.0
 
     do j=1, ntot
        avpol(j)=avpol(j)+pro(i)*sigma*vsol/delta*vpol*in1n(i,j)
+       avpol(j)=avpol(j)+pro(i)*sigma*vsol/delta*vpol*in1n(i,ntot-j+1) ! opposing wall
     enddo
  
 enddo ! i

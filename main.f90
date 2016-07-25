@@ -24,7 +24,6 @@ use longs
 implicit none
 
 integer ncha
-
 integer *4 ier ! Kinsol error flag
 real*8 pi ! pi
 real*8 Na ! avogadros' number              
@@ -116,6 +115,8 @@ in1n = 0
 call initcha              ! init matrices for chain generation
 conf=0                    ! counter of number of conformations
 
+newcuantas = 0
+
 do while (conf.lt.cuantas)
 call cadenas1(chains,ncha) ! generate only chains with first segment at z > 0
 
@@ -123,16 +124,18 @@ do j=1,ncha
   if(conf.lt.cuantas) then
    conf=conf+1
 
+   flag = 0
       do k=1,long
         temp=int(chains(1,k,j)/delta)+1  ! put segments into the correct layer
-           if(temp.gt.ntot) then 
-               print*, 'Increase system size'
-               stop
-            endif
-        in1n(conf,temp) =  in1n(conf,temp) + 1
+           if(temp.le.ntot) then 
+             in1n(newcuantas+1,temp) =  in1n(newcuantas+1,temp) + 1
+           else
+             flag = 1
+           endif
       enddo ! k
-
+      if(flag.eq.0)newcuantas=newcuantas+1
    endif
+
 enddo ! j
 enddo ! while
 
@@ -190,6 +193,7 @@ write(310,*)'vsol        = ',vsol
 write(310,*)'vpol        = ',vpol*vsol
 
 write(310,*)'cuantas     = ',cuantas
+write(310,*)'newcuantas     = ',newcuantas
 write(310,*)'iterations  = ',iter
 
 close(310)

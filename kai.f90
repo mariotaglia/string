@@ -49,8 +49,8 @@ MCsteps = 200
       zmax = cutoff
       zmin = -cutoff
 
-      xmax = cutoff 
-      xmin = -cutoff 
+      xmax = cutoff
+      xmin = -cutoff
     
       do ix = 1, MCsteps
       do iy = 1, MCsteps
@@ -58,7 +58,7 @@ MCsteps = 200
 
 ! coordenadas del segmento (x1,y1,z1) y del punto a integrar (x2,y2,z2)
 
-         x1 = delta/2.0 ! position of first segment
+         x1 = 0.0 ! position of first segment
          y1 = 0.0
          z1 = 0.0
 
@@ -73,14 +73,13 @@ MCsteps = 200
                           ! si R = delta/2 => j = 0 
 
 
-         if((j.gt.Xulimit).or.(j.lt.-Xulimit)) then
-            print*,'kai: error', j, R, x2
-            stop
-         endif
+!         if((j.gt.Xulimit).or.(j.lt.-Xulimit)) then
+!            print*,'kai: error', j, R, x2
+!         endif
 
          if(vect.le.(cutoff)) then ! esta dentro de la esfera del cut-off   
          if(vect.ge.lseg) then ! esta dentro de la esfera del segmento
-             Xu(j) = Xu(j) + ((lseg/vect)**6) ! incluye el jacobiano R(segmento)
+         if((j.le.Xulimit).or.(j.ge.-Xulimit))Xu(j) = Xu(j) + ((lseg/vect)**6) ! incluye el jacobiano R(segmento)
          endif
          endif
 
