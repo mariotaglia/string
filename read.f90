@@ -37,4 +37,7 @@ read(8,*)nada
 read(8,*)nst
 read(8,*), (sts(i), i=1, nst)
 
+read(8,*)nada
+read(8,*)NS
+
 end
