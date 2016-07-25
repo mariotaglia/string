@@ -3,6 +3,12 @@ module mkinsol
 double precision, allocatable :: pp(:)
 endmodule
 
+module kai
+integer Xulimit
+real*8, allocatable :: Xu(:)
+real*8 st
+end module
+
 module brush
 
 integer, parameter :: ncha_max = 700

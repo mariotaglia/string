@@ -5,6 +5,7 @@ use layer
 use volume
 use bulk
 use longs
+use kai
 implicit none
 integer*4 ier2
 real*8 x(ntot),f(ntot)
@@ -15,10 +16,17 @@ integer i,j,k1,k2,ii, jj,iz       ! dummy indices
 integer err
 integer n
 real*8 algo
+real*8 xtotal(1-Xulimit:ntot+Xulimit)
+
 n = ntot
 
 do i=1,n                 
 xh(i)=x(i)  ! solvent density=volume fraction   
+enddo
+
+xtotal = 0.0
+do i = 1,n
+xtotal(i) = 1.0-xh(i)
 enddo
 
 avpol = 0.0 
@@ -26,6 +34,9 @@ avpol = 0.0
 ! calculation of xpot
 do i = 1, ntot
 xpot(i) = xh(i)**(vpol)
+do j = -Xulimit, Xulimit 
+ xpot(i) = xpot(i)*dexp(Xu(j)*xtotal(i+j)*st/(vpol*vsol))
+enddo
 enddo
 
 !    probability distribution

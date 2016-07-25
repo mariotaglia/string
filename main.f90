@@ -8,6 +8,7 @@
 
 call read ! read input from input.txt
 call allocation ! allocate arrays in memory
+call kai ! generate poor solvent
 call solve ! solve the system
 end
 

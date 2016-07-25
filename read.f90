@@ -2,6 +2,7 @@ subroutine read
 use longs
 use brush
 use bulk
+use kai
 implicit none
 integer i
 
@@ -27,5 +28,11 @@ read(8,*),infile
 
 read(8,*)nada
 read(8,*)lseg
+
+read(8,*)nada
+read(8,*)Xulimit
+
+read(8,*)nada
+read(8,*)st
 
 end
