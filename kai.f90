@@ -58,7 +58,7 @@ MCsteps = 200
 
 ! coordenadas del segmento (x1,y1,z1) y del punto a integrar (x2,y2,z2)
 
-         x1 =0.0 ! position of first segment
+         x1 = delta/2.0 ! position of first segment
          y1 = 0.0
          z1 = 0.0
 
@@ -69,9 +69,14 @@ MCsteps = 200
          R = x2
 
          vect = sqrt((x1-x2)**2 + (y1-y2)**2 + (z1-z2)**2) ! vector diferencia
-         j = int(R/delta)+1 ! j tiene la celda donde cae el punto a integrar
+         j = int(R/delta) ! j tiene la celda donde cae el punto a integrar
+                          ! si R = delta/2 => j = 0 
 
-         if((j.gt.Xulimit).or.(j.lt.-Xulimit))stop
+
+         if((j.gt.Xulimit).or.(j.lt.-Xulimit)) then
+            print*,'kai: error', j, R, x2
+            stop
+         endif
 
          if(vect.le.(cutoff)) then ! esta dentro de la esfera del cut-off   
          if(vect.ge.lseg) then ! esta dentro de la esfera del segmento
@@ -83,7 +88,7 @@ MCsteps = 200
       enddo
       enddo
 
-      do j = 1, ntot
+      do j = -Xulimit, Xulimit
       Xu(j) = Xu(j)/(MCsteps**3)*(2.0*cutoff)**3
      write(111,*)j,Xu(j) ! residual size of iteration vector
      enddo

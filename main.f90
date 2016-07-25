@@ -30,7 +30,6 @@ real*8 pi ! pi
 real*8 Na ! avogadros' number              
 parameter (Na=6.02d23)
 
-real*8 xsol(ntot)         ! volume fraction solvent
 real*8 x1(ntot),xg1(ntot)   ! density solvent iteration vector
 real*8 zc(ntot)           ! z-coordinate layer 
 
@@ -157,7 +156,7 @@ enddo
    call call_kinsol(x1, xg1, ier)
 
 do i=1,n
-xsol(i)=x1(i) ! retrive xsol from solution
+avsol(i)=x1(i) ! retrive xsol from solution
 enddo
 
 write(sysfilename,'(A7,BZ,I3.3,A1,I3.3,A4)')'system.', countfileuno,'.',countfile,'.dat'
@@ -170,7 +169,7 @@ open(unit=330,file=denssolfilename)
 
 do i=1,n
 write(321,*)zc(i),avpol(i)
-write(330,*)zc(i),xsol(i)
+write(330,*)zc(i),avsol(i)
 enddo
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -192,6 +191,8 @@ write(310,*)'iterations  = ',iter
 close(310)
 CLOSE(321)
 close(330)
+
+call free_energy
 
 stop
 

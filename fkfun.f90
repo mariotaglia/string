@@ -11,7 +11,6 @@ integer*4 ier2
 real*8 x(ntot),f(ntot)
 real*8 xh(ntot)
 real*8 xpot(ntot)
-real*8 pro(cuantas)
 integer i,j,k1,k2,ii, jj,iz       ! dummy indices
 integer err
 integer n
