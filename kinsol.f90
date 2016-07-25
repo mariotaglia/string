@@ -42,7 +42,7 @@ double precision vtemp1(*), vtemp2(*)
 common /psize/ neq
 
 do i = 1, neq
-   pp(i) = 1.0 !0.1 / (1.0+exp(-udata(i)))
+   pp(i) = 1.0 ! 0.1 / (1.0+exp(-udata(i)))
 enddo
    ier = 0
 return
@@ -53,21 +53,22 @@ use brush
 implicit none
 integer *4 ier ! Kinsol error flag
 integer i
-real*8 x1(ntot), xg1(ntot)
-real*8 x1_old(ntot), xg1_old(ntot)
+integer parameter neqs = (ntot+1)*(NS-2)
+real*8 x1(neqs), xg1(neqs)
+real*8 x1_old(neqs), xg1_old(neqs)
 integer*8 iout(15) ! Kinsol additional output information
 real*8 rout(2) ! Kinsol additional out information
 integer*8 msbpre
 real*8 fnormtol, scsteptol
-real*8 scale(ntot)
-real*8 constr(ntot)
+real*8 scale(neqs)
+real*8 constr(neqs)
 integer*4  globalstrat, maxl, maxlrst
 integer neq ! Kinsol number of equations
 integer*4 max_niter
 common /psize/ neq ! Kinsol
 integer ierr
 
-neq=ntot
+neq=neqs
 
 ! INICIA KINSOL
 
@@ -97,8 +98,10 @@ call fkinsetrin('FNORM_TOL', fnormtol, ier)
 call fkinsetrin('SSTEP_TOL', scsteptol, ier)
 call fkinsetiin('MAX_NITER', max_niter, ier)
 
-do i = 1, neq  !constraint vector
-   constr(i) = 2.0
+constr = 0.0
+
+do i = 1, ntot*(NS-2)  !constraint vector
+   constr(i) = 2.0 ! > 0 only for xh
 enddo
 
 call fkinsetvin('CONSTR_VEC', constr, ier) ! constraint vector
@@ -153,12 +156,13 @@ use brush
 
 integer i
 
-real*8 x1_old(ntot)
-real*8 x1(ntot)
-real*8 f(ntot)
+integer parameter neqs = (ntot+1)*(NS-2)
+real*8 x1_old(neqs)
+real*8 x1(neqs)
+real*8 f(neqs)
 
 x1 = 0.0
-do i = 1,ntot
+do i = 1,neqs
   x1(i) = x1_old(i)
 enddo
 

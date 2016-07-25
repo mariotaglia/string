@@ -1,3 +1,51 @@
+subroutine creador
+
+use brush
+implicit none
+integer flag
+integer ncha,j,k
+integer temp
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! CHAIN GENERATION
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+print*, 'Calling RIS chain generator'
+in1n = 0
+
+call initcha              ! init matrices for chain generation
+conf=0                    ! counter of number of conformations
+
+newcuantas = 0
+
+do while (conf.lt.cuantas)
+call cadenas1(chains,ncha) ! generate only chains with first segment at z > 0
+
+do j=1,ncha
+  if(conf.lt.cuantas) then
+   conf=conf+1
+
+   flag = 0
+      do k=1,long
+        temp=int(chains(1,k,j)/delta)+1  ! put segments into the correct layer
+           if(temp.gt.ntot)flag = 1
+      enddo ! k
+
+      if(flag.eq.0) then
+      newcuantas=newcuantas+1
+       do k=1,long
+        temp=int(chains(1,k,j)/delta)+1  ! put segments into the correct layer
+        in1n(newcuantas,temp) =  in1n(newcuantas,temp) + 1
+       enddo ! k
+      endif
+   endif
+enddo ! j
+enddo ! while
+
+print*,"Chains ready"
+end subroutine
+
+
 subroutine mrrrr(a,b,c)
 real*8 a(3,3),b(3,3),c(3,3)
 

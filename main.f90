@@ -136,24 +136,29 @@ do ccc = 1, nsigma
 st=sts(cc)
 sigma=sigmas(ccc)
 
-countfileuno=cc
-countfile=ccc
+countfile=cc+ccc-1
 
 iter=0                    ! iteration counter
-
-do i=1,n             ! initial gues for x1
-xg1(i)=x1(i)
-enddo
 
 ! Call solver 
 
    iter = 0
-   print*, 'solve: Enter solver ', ntot, ' eqs'
+   print*, 'solve: Enter solver ', (NS-2)*(ntot+1), ' eqs'
    call call_kinsol(x1, xg1, ier)
 
+
+do ii = 1, NS-2
 do i=1,n
-avsol(i)=x1(i) ! retrive xsol from solution
+avsol(i,ii+1)=x1(i+(ii-1)*ntot)  ! solvent density=volume fraction
 enddo
+enddo
+
+avsol(:,1)=xfirst(:)
+avsol(:,NS)=xlast(:)
+
+do ii = 1, NS
+
+countfileuno = ii
 
 write(sysfilename,'(A7,BZ,I3.3,A1,I3.3,A4)')'system.', countfileuno,'.',countfile,'.dat'
 write(denspolfilename,'(A15,BZ,I3.3,A1,I3.3,A4)')'densitypolymer.',countfileuno,'.',countfile,'.dat'
@@ -184,12 +189,15 @@ write(310,*)'vpol        = ',vpol*vsol
 write(310,*)'cuantas     = ',cuantas
 write(310,*)'newcuantas     = ',newcuantas
 write(310,*)'iterations  = ',iter
+write(310,*)'index  = ',ii
 
 close(310)
 CLOSE(321)
 close(330)
 
-call free_energy
+call free_energy(ii)
+
+enddo ! ii
 
 enddo
 enddo

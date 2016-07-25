@@ -1,4 +1,4 @@
-subroutine free_energy
+subroutine free_energy(cc)
 use brush
 use layer
 use volume
@@ -7,6 +7,7 @@ use kai
 use partfunc
 implicit none
 
+integer cc
 real*8 F_tot, F_tot2
 real*8 F_Mix_s, F_Conf, F_vdW
 integer iz, i, j
@@ -16,7 +17,7 @@ real*8 mupol
 
 xtotal = 0.0
 do i = 1,ntot
-xtotal(i) = 1.0-avsol(i)
+xtotal(i) = 1.0-avsol(i, cc)
 enddo
 
 
@@ -28,7 +29,7 @@ F_tot2 = 0.0
 F_Mix_s = 0.0 
 
 do iz = 1, ntot
-  F_Mix_s = F_Mix_s + avsol(iz)*(dlog(avsol(iz))-1.0)
+  F_Mix_s = F_Mix_s + avsol(iz)*(dlog(avsol(iz,cc))-1.0)
   F_Mix_s = F_Mix_s - xsolbulk*(dlog(xsolbulk)-1.0)
 enddo      
 
@@ -40,7 +41,7 @@ F_tot = F_tot + F_Mix_s
 F_Conf = 0.0
 
 do i = 1, newcuantas
-   F_Conf = F_Conf + (pro(i)/q)*dlog((pro(i))/q)*2.0*sigma ! it is 2.0*sigma because wa have brushes on both walls
+   F_Conf = F_Conf + (pro(i,cc)/q(cc))*dlog((pro(i,cc))/q(cc))*2.0*sigma ! it is 2.0*sigma because wa have brushes on both walls
 enddo
 
 F_tot = F_tot + F_Conf 
@@ -65,7 +66,7 @@ F_tot = F_tot + F_vdW
 !      Free_Energy = Free_Energy + F_eps
 
 
-print*, 'fe: Free energy 1:', F_tot
+print*, 'fe: Free energy 1:', F_tot, cc
 
 ! Segun Pong
 
@@ -76,10 +77,10 @@ sumpi = 0.0
 
 do iz=1,ntot
             
-  sumpi = sumpi+dlog(avsol(iz))     
+  sumpi = sumpi+dlog(avsol(iz,cc))     
   sumpi = sumpi-dlog(xsolbulk)     
 
-  sumrho = sumrho + ( - avsol(iz) )! sum over  rho_i i=+,-,si
+  sumrho = sumrho + ( - avsol(iz,cc) )! sum over  rho_i i=+,-,si
   sumrho = sumrho - ( - xsolbulk )! sum over  rho_i i=+,-,si
 
 enddo
@@ -87,37 +88,37 @@ enddo
 sumpi = (delta/vsol)*sumpi
 sumrho = (delta/vsol)*sumrho
 
-F_tot2 = -2.0*sigma*dlog(q/shift) + sumpi + sumrho -F_vdW  ! It is 2.0*sigma because we have brush on both walls
+F_tot2 = -2.0*sigma*dlog(q(cc)/shift) + sumpi + sumrho -F_vdW  ! It is 2.0*sigma because we have brush on both walls
 
-print*, 'fe: Free energy 2:', F_tot2
+print*, 'fe: Free energy 2:', F_tot2,cc
 
 ! Calcula mupol
 
-mupol = -dlog(q/shift)
+mupol = -dlog(q(cc)/shift)
  
 
 open(unit=20, file='F_tot.dat', access='append')
-write(20,*)st,F_tot
+write(20,*)cc,F_tot
 close(20)
 
 open(unit=20, file='F_tot2.dat', access='append')
-write(20,*)st,F_tot2
+write(20,*)cc,F_tot2
 close(20)
 
 open(unit=20, file='F_mixs.dat', access='append')
-write(20,*)st,F_mix_s
+write(20,*)cc,F_mix_s
 close(20)
 
 open(unit=20, file='mupol.dat', access='append')
-write(20,*)st,mupol
+write(20,*)cc,mupol
 close(20)
 
 open(unit=20, file='F_vdW.dat', access='append')
-write(20,*)st,F_vdW
+write(20,*)cc,F_vdW
 close(20)
 
 open(unit=20, file='F_conf.dat', access='append')
-write(20,*)st,F_conf
+write(20,*)cc,F_conf
 close(20)
 
 end subroutine
