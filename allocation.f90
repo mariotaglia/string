@@ -5,7 +5,7 @@ use longs
 use kai
 use string
 
-allocate (pp((ntot+1)*(NS-2))
+allocate (pp((ntot+2)*(NS-2))
 allocate (avpol(ntot, NS))
 allocate (avsol(ntot, NS))
 allocate (in1n(cuantas,ntot))

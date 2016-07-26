@@ -53,7 +53,7 @@ use brush
 implicit none
 integer *4 ier ! Kinsol error flag
 integer i
-integer parameter neqs = (ntot+1)*(NS-2)
+integer parameter neqs = (ntot+2)*(NS-2)
 real*8 x1(neqs), xg1(neqs)
 real*8 x1_old(neqs), xg1_old(neqs)
 integer*8 iout(15) ! Kinsol additional output information
@@ -101,8 +101,17 @@ call fkinsetiin('MAX_NITER', max_niter, ier)
 constr = 0.0
 
 do i = 1, ntot*(NS-2)  !constraint vector
-   constr(i) = 2.0 ! > 0 only for xh
+   constr(i) = 2.0 ! xh > 0
 enddo
+
+do i = ntot*(NS-2)+1, (ntot+1)*(NS-2)  !constraint vector
+   constr(i) = -1.0 ! LM <= 0 
+enddo
+
+do i = (ntot+1)*(NS-2)+1, (ntot+2)*(NS-2)  !constraint vector
+   constr(i) = 2.0 ! beta > 0 
+enddo
+
 
 call fkinsetvin('CONSTR_VEC', constr, ier) ! constraint vector
 ! CALL FKINSPTFQMR (MAXL, IER)
@@ -156,7 +165,7 @@ use brush
 
 integer i
 
-integer parameter neqs = (ntot+1)*(NS-2)
+integer parameter neqs = (ntot+2)*(NS-2)
 real*8 x1_old(neqs)
 real*8 x1(neqs)
 real*8 f(neqs)

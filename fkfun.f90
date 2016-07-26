@@ -8,7 +8,7 @@ use longs
 use kai
 implicit none
 integer*4 ier2
-real*8 x((ntot+1)*(NS-2)),f((ntot+1)*(NS-2))
+real*8 x((ntot+2)*(NS-2)),f((ntot+2)*(NS-2))
 real*8 xh(ntot,NS)
 real*8 xpot(ntot, NS)
 integer i,j,k1,k2,ii,kk, jj,iz       ! dummy indices
@@ -18,6 +18,7 @@ real*8 algo
 real*8 algo2
 real*8 xtotal(1-Xulimit:ntot+Xulimit)
 real*8 LM(NS-2) ! Lagrange multipliers
+real*8 beta(NS-2) ! q/q'
 real*8 aa
 integer fl(2)
 real*8 arc(NS-1), sumarc, arc0
@@ -35,6 +36,10 @@ enddo
 ! LM from ntot*(NS-2) + 1 to ntot*(NS-2) + NS - 2
 do ii = 1, NS-2
 LM(ii) = x(ntot*(NS-2)+ii)
+enddo
+! beta from (ntot+1)*(NS-2) + 1 to (ntot+1)*(NS-2)
+do ii = 1, NS-2
+beta(ii) = x((ntot+1)*(NS-2)+ii)
 enddo
 
 ! Retrive solvent for first and last
@@ -113,8 +118,8 @@ pro(i,ii) = shift
      pro(i,ii)= pro(i,ii) * xpot(j)**in1n(i,j)
     enddo
 
-    call Wfunction(pro(i,ii),pro(i,ii-1), LM(jj)) ! solves for pro(i,ii) using W function, see notes
-
+    call Wfunction(pro(i,ii),pro(i,ii-1), LM(jj), beta(jj)) ! solves for pro(i,ii) using W function, see notes
+                                                            ! overwrites pro(i,ii)
     q(ii)=q(ii)+pro(i,ii)
 
     do j=1, ntot
@@ -160,10 +165,6 @@ do i=1,ntot
 xh(i,ii+1)=x(i+(ii-1)*ntot)  ! solvent density=volume fraction   
 enddo
 enddo
-! LM from ntot*(NS-2) + 1 to ntot*(NS-2) + NS - 2
-do ii = 1, NS-2
-LM(ii) = x(ntot*(NS-2)+ii)
-enddo
 
 do ii = 1, NS-2 ! Packing constraint
 do i=1,ntot
@@ -175,10 +176,14 @@ do ii = 1, NS-2
  f(ntot*(NS-2)+ii) = arc(ii)-arc0
 enddo
 
+do ii = 1, NS-2
+ f((ntot+1)*(NS-2)+ii) = beta(ii)*q(ii)/q(ii+1) - 1.0 
+enddo
+
 iter=iter+1
 
 algo = 0.0
-do i = 1, (NS-2)*(ntot+1)
+do i = 1, (NS-2)*(ntot+2)
  algo = algo + f(i)**2
 end do
 
@@ -187,3 +192,22 @@ norma=algo
 
 return
 end
+
+subroutine Wfunction(pro,prop,LM,beta) ! solves for pro(i,ii) using W function, see notes
+implicit none
+real*8 pro,prop,LM,beta
+real*8 arg
+integer*4 nb, l, nerror
+
+nb=0 ! upper branch, LM<0
+l = 0 ! not offset
+arg=-LM*pro*exp(-LM*beta*prop)
+pro = wapr(arg,nb,nerror,l)
+
+if(nerror.eq.1) then
+  print*,'Wfunction: Error in WAPR'
+  stop
+endif
+
+pro = pro/(-LM)
+end subroutine
