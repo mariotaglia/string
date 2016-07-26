@@ -84,7 +84,7 @@ fl(2) = NS ! last
 
 do kk = 1, 2
 
-ii = fl(ii)
+ii = fl(kk)
 jj = ii - 1 ! Lagrange multiplier index for ii
 
 do i=1,newcuantas ! loop over cuantas
