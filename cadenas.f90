@@ -1,10 +1,14 @@
 subroutine creador
 
 use brush
+use layer
+use longs
 implicit none
 integer flag
 integer ncha,j,k
 integer temp
+integer conf
+real*8 chains(3,long,ncha_max) ! chains(x,i,l)= coordinate x of segement i ,x=2 y=3,z=1
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! CHAIN GENERATION

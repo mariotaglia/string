@@ -50,25 +50,26 @@ end
 
 subroutine call_kinsol(x1_old, xg1_old, ier)
 use brush
+use string
+
 implicit none
 integer *4 ier ! Kinsol error flag
 integer i
-integer parameter neqs = (ntot+2)*(NS-2)
-real*8 x1(neqs), xg1(neqs)
-real*8 x1_old(neqs), xg1_old(neqs)
+real*8 x1((ntot+2)*(NS-2)), xg1((ntot+2)*(NS-2))
+real*8 x1_old((ntot+2)*(NS-2)), xg1_old((ntot+2)*(NS-2))
 integer*8 iout(15) ! Kinsol additional output information
 real*8 rout(2) ! Kinsol additional out information
 integer*8 msbpre
 real*8 fnormtol, scsteptol
-real*8 scale(neqs)
-real*8 constr(neqs)
+real*8 scale((ntot+2)*(NS-2))
+real*8 constr((ntot+2)*(NS-2))
 integer*4  globalstrat, maxl, maxlrst
 integer neq ! Kinsol number of equations
 integer*4 max_niter
 common /psize/ neq ! Kinsol
 integer ierr
 
-neq=neqs
+neq=(ntot+2)*(NS-2)
 
 ! INICIA KINSOL
 
@@ -162,13 +163,12 @@ end
 
 subroutine call_fkfun(x1_old)
 use brush
-
+use string
 integer i
 
-integer parameter neqs = (ntot+2)*(NS-2)
-real*8 x1_old(neqs)
-real*8 x1(neqs)
-real*8 f(neqs)
+real*8 x1_old((ntot+2)*(NS-2))
+real*8 x1((ntot+2)*(NS-2))
+real*8 f((ntot+2)*(NS-2))
 
 x1 = 0.0
 do i = 1,neqs

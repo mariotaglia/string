@@ -9,6 +9,7 @@
 call read ! read input from input.txt
 call allocation ! allocate arrays in memory
 call kai ! generate poor solvent
+call creador
 call solve ! solve the system
 end
 
@@ -46,8 +47,6 @@ real*8 tmp
 
 real*8 algo, algo2                  
 
-real*8 chains(3,long,ncha_max) ! chains(x,i,l)= coordinate x of segement i ,x=2 y=3,z=1
-real*8 chainsw(ncha_max), sumweight_tosend
 real*8 zp(long)
 
 real*8 sum,sumel          ! auxiliary variable used in free energy computation  
@@ -60,7 +59,6 @@ character*28 denspolfilename
 
 integer countfile         ! enumerates the outputfiles 
 integer countfileuno     ! enumerates the outputfiles para una corrida
-integer conf              ! counts number of conformations
 
 integer readsalt          !integer to read salt concentrations
 
@@ -74,7 +72,6 @@ print*, 'GIT Version: ', _VERSION
 pi=dacos(-1.0d0)          ! pi = arccos(-1) 
 itmax=200                 ! maximum number of iterations       
 n=ntot                    ! size of lattice
-conf=0                    ! counter for conformations
 
 vsol=0.030                ! volume solvent molecule in (nm)^3
 vpol= ((4.0/3.0)*pi*(0.3)**3)/vsol  ! volume polymer segment in units of vsol
@@ -123,7 +120,7 @@ enddo
 
 x1 = xg1
 
-do i = n
+do i = 1,n
 zc(i)= (i-0.5) * delta
 enddo
 
@@ -172,8 +169,8 @@ open(unit=321,file=denspolfilename)
 open(unit=330,file=denssolfilename)
 
 do i=1,n
-write(321,*)zc(i),avpol(i)
-write(330,*)zc(i),avsol(i)
+write(321,*)zc(i),avpol(i, ii)
+write(330,*)zc(i),avsol(i, ii)
 enddo
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

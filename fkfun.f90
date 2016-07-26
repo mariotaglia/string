@@ -6,6 +6,8 @@ use volume
 use bulk
 use longs
 use kai
+use string
+
 implicit none
 integer*4 ier2
 real*8 x((ntot+2)*(NS-2)),f((ntot+2)*(NS-2))
@@ -16,7 +18,7 @@ integer err
 integer n
 real*8 algo
 real*8 algo2
-real*8 xtotal(1-Xulimit:ntot+Xulimit)
+real*8 xtotal(1-Xulimit:ntot+Xulimit, NS)
 real*8 LM(NS-2) ! Lagrange multipliers
 real*8 beta(NS-2) ! q/q'
 real*8 aa
@@ -43,8 +45,10 @@ beta(ii) = x((ntot+1)*(NS-2)+ii)
 enddo
 
 ! Retrive solvent for first and last
-xh(:,1) = xfirst(:)
-xh(:,NS) = xlast (:)
+do i =1, n
+xh(i,1) = xfirst(i)
+xh(i,NS) = xlast(i)
+enddo
 
 xtotal = 0.0
 do ii = 1, NS
@@ -88,7 +92,7 @@ do i=1,newcuantas ! loop over cuantas
 pro(i,ii) = shift
 
     do j=1, ntot
-     pro(i,ii)= pro(i,ii) * xpot(j)**in1n(i,j)
+     pro(i,ii)= pro(i,ii) * xpot(j,ii)**in1n(i,j)
     enddo
 
     q(ii)=q(ii)+pro(i, ii)
@@ -115,7 +119,7 @@ do i=1,newcuantas ! loop over cuantas
 pro(i,ii) = shift
 
     do j=1, ntot
-     pro(i,ii)= pro(i,ii) * xpot(j)**in1n(i,j)
+     pro(i,ii)= pro(i,ii) * xpot(j, ii)**in1n(i,j)
     enddo
 
     call Wfunction(pro(i,ii),pro(i,ii-1), LM(jj), beta(jj)) ! solves for pro(i,ii) using W function, see notes
@@ -198,7 +202,7 @@ implicit none
 real*8 pro,prop,LM,beta
 real*8 arg
 integer*4 nb, l, nerror
-
+real*8, external :: wapr
 nb=0 ! upper branch, LM<0
 l = 0 ! not offset
 arg=-LM*pro*exp(-LM*beta*prop)

@@ -29,7 +29,7 @@ F_tot2 = 0.0
 F_Mix_s = 0.0 
 
 do iz = 1, ntot
-  F_Mix_s = F_Mix_s + avsol(iz)*(dlog(avsol(iz,cc))-1.0)
+  F_Mix_s = F_Mix_s + avsol(iz,cc)*(dlog(avsol(iz,cc))-1.0)
   F_Mix_s = F_Mix_s - xsolbulk*(dlog(xsolbulk)-1.0)
 enddo      
 

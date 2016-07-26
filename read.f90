@@ -3,6 +3,7 @@ use longs
 use brush
 use bulk
 use kai
+use string
 implicit none
 integer i
 
