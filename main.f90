@@ -109,12 +109,12 @@ enddo
 enddo
 
 !!! Initial guess for LM = 0
-do i = 1, NS-2
+do ii = 1, NS-2
 xg1(n*(NS-2)+ii) = 0.0
 enddo
 
 !!! Initial guess for beta = 1.0
-do i = 1, NS-2
+do ii = 1, NS-2
 xg1((n+1)*(NS-2)+ii) = 1.0
 enddo
 

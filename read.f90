@@ -9,6 +9,9 @@ integer i
 
 !     reading in of variables from stdin
 
+read(8,*)nada
+read(8,*)NS
+
 read(8,*),nada
 read(8,*),ntot
 
@@ -37,8 +40,4 @@ read(8,*)Xulimit
 read(8,*)nada
 read(8,*)nst
 read(8,*), (sts(i), i=1, nst)
-
-read(8,*)nada
-read(8,*)NS
-
 end
