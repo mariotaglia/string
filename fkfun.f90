@@ -29,7 +29,7 @@ integer iter2
 real*8 norma2
 real*8 error2
 
-error2 = 1.0d-6
+error2 = 1.0d-5
 shift = 1.0
 n = ntot
 
@@ -190,6 +190,8 @@ beta(ii) = beta0(ii)
 enddo
 
 if(mod(iter2,100).eq.0)print*,'      Inner Loop:', iter2, norma2
+if(mod(iter2,100).eq.0)write(10,*)'      Inner Loop:', iter2, norma2
+flush(10)
 iter2 = iter2 + 1
 enddo ! while
 
@@ -222,7 +224,8 @@ end do
 !PRINT*, iter, algo1+algo2+algo3,algo1,algo2,algo3, LM(1)
 norma=algo1
 print*, 'Outer Loop:', iter, norma
-
+write(10,*)'Outer Loop:', iter, norma
+flush(10)
 
 
 return
