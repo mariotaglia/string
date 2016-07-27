@@ -29,8 +29,8 @@ F_tot2 = 0.0
 F_Mix_s = 0.0 
 
 do iz = 1, ntot
-  F_Mix_s = F_Mix_s + avsol(iz,cc)*(dlog(avsol(iz,cc))-1.0)
-  F_Mix_s = F_Mix_s - xsolbulk*(dlog(xsolbulk)-1.0)
+  F_Mix_s = F_Mix_s + avsol(iz,cc)*(log(avsol(iz,cc))-1.0)
+  F_Mix_s = F_Mix_s - xsolbulk*(log(xsolbulk)-1.0)
 enddo      
 
 F_Mix_s = F_Mix_s * delta/vsol
@@ -41,7 +41,7 @@ F_tot = F_tot + F_Mix_s
 F_Conf = 0.0
 
 do i = 1, newcuantas
-   F_Conf = F_Conf + (pro(i,cc))*dlog((pro(i,cc)))*2.0*sigma ! it is 2.0*sigma because wa have brushes on both walls
+   F_Conf = F_Conf + (pro(i,cc))*log((pro(i,cc)))*2.0*sigma ! it is 2.0*sigma because wa have brushes on both walls
 enddo
 
 F_tot = F_tot + F_Conf 
@@ -77,8 +77,8 @@ sumpi = 0.0
 
 do iz=1,ntot
             
-  sumpi = sumpi+dlog(avsol(iz,cc))     
-  sumpi = sumpi-dlog(xsolbulk)     
+  sumpi = sumpi+log(avsol(iz,cc))     
+  sumpi = sumpi-log(xsolbulk)     
 
   sumrho = sumrho + ( - avsol(iz,cc) )! sum over  rho_i i=+,-,si
   sumrho = sumrho - ( - xsolbulk )! sum over  rho_i i=+,-,si
@@ -88,13 +88,13 @@ enddo
 sumpi = (delta/vsol)*sumpi
 sumrho = (delta/vsol)*sumrho
 
-F_tot2 = -2.0*sigma*dlog(q(cc)/shift) + sumpi + sumrho -F_vdW  ! It is 2.0*sigma because we have brush on both walls
+F_tot2 = -2.0*sigma*log(q(cc)/shift) + sumpi + sumrho -F_vdW  ! It is 2.0*sigma because we have brush on both walls
 
 print*, 'fe: Free energy 2:', F_tot2,cc
 
 ! Calcula mupol
 
-mupol = -dlog(q(cc)/shift)
+mupol = -log(q(cc)/shift)
  
 
 open(unit=20, file='F_tot.dat', access='append')

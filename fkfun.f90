@@ -19,17 +19,17 @@ integer n
 real*8 algo, algo1, algo3
 real*8 algo2
 real*8 xtotal(1-Xulimit:ntot+Xulimit, NS)
-real*8 LM0(NS-2)
-real*8 beta0(NS-2) ! q/q'
+real*16 LM0(NS-2)
+real*16 beta0(NS-2) ! q/q'
 real*8 aa
 integer fl(2)
-real*8 arc(NS-1), sumarc, arc0
-real*8 pro0(cuantas,NS)
+real*16 arc(NS-1), sumarc, arc0
+real*16 pro0(cuantas,NS)
 integer iter2
-real*8 norma2
+real*16 norma2
 real*8 error2
 
-error2 = 1.0d-8
+error2 = 1.0d-10
 shift = 1.0
 n = ntot
 
@@ -145,9 +145,8 @@ pro(i,ii) = shift
  
 enddo ! i
 
-
 avpol(:,ii) = avpol(:,ii)/q(ii)
-pro(:,ii) = pro(:, ii)/q(ii)
+pro(:,ii) = pro(:,ii)/q(ii)
 enddo ! ii
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -177,15 +176,15 @@ print*, 'arc', jj, arc(jj), arc0
 do i = 1, newcuantas
 LM0(jj) = LM0(jj) + abs(log(pro(i,ii)*q(ii)/pro0(i,ii)))
 enddo
-LM0(jj) = log(LM0(jj)/arc0)
-beta0(jj)=q(ii+1)
+LM0(jj) = log(LM0(jj)/arc0/beta(jj))
+beta0(jj)=q(ii)
 enddo
 
 norma2 = 0.0
 do ii=1,NS-2
 print*, ii,'LM', LM(ii), LM0(ii)
 print*, ii,'beta', beta(ii), beta0(ii)
-norma2 = norma2 + (LM(ii)-LM0(ii))**2 + (beta(ii)-beta0(ii))**2
+norma2 = norma2 + abs(LM(ii)-LM0(ii)) + abs(beta(ii)-beta0(ii))
 LM(ii) = LM0(ii)
 beta(ii) = beta0(ii)
 enddo
@@ -195,7 +194,7 @@ iter2 = iter2 + 1
 enddo ! while
 
 do i = 1, newcuantas
-print*, i, pro(i,2),pro0(i,2),pro(i,1)
+print*, i, pro(i,2),pro0(i,2),pro(i,1), pro(i,2)-pro(i,1)
 enddo
 print*, beta(1)
 print*, LM(1)
@@ -231,28 +230,29 @@ end
 
 subroutine Wfunction(pro,prop,LM,beta) ! solves for pro(i,ii) using W function, see notes
 implicit none
-real*8 pro,prop,LM,beta
+real*16 pro,prop,LM,beta
 real*8 arg
 integer*4 nb, l, nerror
 real*8, external :: wapr
-real*8 tmp
-real*8 LM0
 real*8 cutoff
-real*8 L1, L2
-real*8 lnarg
-real*8 pro0
-real*8 betaprop
+real*16 pro0
 
-betaprop = beta*prop
-pro0 = pro
+real*16 qpro, qprop, qLM, qbeta, qpro0
+real*16 L1, L2
+real*16 lnarg
+real*16 tmp
+
+qpro0 = pro
 cutoff = 20.0 ! minimum z to use asymptotic expression for W = exp(z), for z < w use WAPR 
 
-LM0 = exp(LM) ! (log(LM)+1)
+qprop = prop
+qbeta = beta
+qLM = exp(LM) ! (log(LM)+1)
 
 nb = 0 ! upper branch, LM<0
 l = 0 ! not offset
 
-lnarg=log(LM0*pro0)+(LM0*betaprop)
+lnarg=log(qLM*qpro0)+(qLM*qbeta*qprop)
 
 if(lnarg.gt.cutoff) then
  L1 = lnarg
@@ -277,18 +277,6 @@ endif
 
 !print*, 'tmp', tmp
 !print*, 'pro0', pro0
-pro = tmp/LM0
-
-print*, '!!!!!', log(pro*LM0), log(pro0*LM0)+(-LM0*(pro-betaprop))
-print*, '!!!!', log(pro*LM0), log(pro0*LM0)+(-LM0*beta*(pro/beta))+(-LM0*beta*(-prop))
-
-
-print*, '!!!!b', -log(pro*LM0)-(LM0*pro)+ log(pro0*LM0)+(LM0*beta*prop)
-
-
-
-print*, '!!!', log(pro*LM0)+LM0*pro, log(LM0*pro0)+(LM0*beta*prop)
-print*,'!!', lnarg, log(pro*exp(LM))+pro*exp(LM)
-print*,'!', lnarg, log(tmp)+tmp
-
+qpro = tmp/qLM
+pro=qpro
 end subroutine

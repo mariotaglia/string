@@ -2,8 +2,8 @@ module string
 integer NS
 real*8, allocatable :: xfirst(:)
 real*8, allocatable :: xlast(:)
-real*8, allocatable :: LM(:)
-real*8, allocatable :: beta(:)
+real*16, allocatable :: LM(:)
+real*16, allocatable :: beta(:)
 endmodule
 
 module mkinsol
@@ -32,7 +32,7 @@ integer newcuantas          ! number of polymer configuration or  bound sequence
 integer ntot ! lattice sites
 real*8, allocatable :: avpol(:,:) ! volume fraction polymers already adsorbed
 real*8, allocatable :: avsol(:,:) ! volume fraction polymers already adsorbed
-real*8, allocatable :: pro(:,:)   ! probabilities
+real*16, allocatable :: pro(:,:)   ! probabilities
 integer*1, allocatable :: in1n(:,:)
 real*8 sigma
 real*8 sigmas(100), sts(100)
@@ -41,7 +41,7 @@ integer iter              ! counts number of iterations
 endmodule
 
 module partfunc
-real*8, allocatable :: q(:)
+real*16, allocatable :: q(:)
 endmodule
 
 module layer
