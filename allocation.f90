@@ -6,7 +6,9 @@ use kai
 use string
 use partfunc
 
-allocate (pp((ntot+2)*(NS-2)))
+allocate (LM(NS-2))
+allocate (beta(NS-2))
+allocate (pp((ntot)*(NS-2)))
 allocate (avpol(ntot, NS))
 allocate (avsol(ntot, NS))
 allocate (in1n(cuantas,ntot))

@@ -33,6 +33,7 @@ end
 subroutine fkpset(udata, uscale, fdata, fscale,vtemp1,vtemp2, ier)
 use brush
 use mkinsol
+use string
 implicit none
 integer *4 ier ! Kinsol error flag
 integer neq, i
@@ -41,8 +42,10 @@ double precision vtemp1(*), vtemp2(*)
 
 common /psize/ neq
 
-do i = 1, neq
-   pp(i) = 1.0 ! 0.1 / (1.0+exp(-udata(i)))
+!   pp(:) = 1.0
+
+do i = 1, (NS-2)*ntot
+   pp(i) = 1.0 ! / (1.0+exp(1.0-udata(i)))
 enddo
    ier = 0
 return
@@ -55,30 +58,30 @@ use string
 implicit none
 integer *4 ier ! Kinsol error flag
 integer i
-real*8 x1((ntot+2)*(NS-2)), xg1((ntot+2)*(NS-2))
-real*8 x1_old((ntot+2)*(NS-2)), xg1_old((ntot+2)*(NS-2))
+real*8 x1(ntot*(NS-2)), xg1(ntot*(NS-2))
+real*8 x1_old(ntot*(NS-2)), xg1_old(ntot*(NS-2))
 integer*8 iout(15) ! Kinsol additional output information
 real*8 rout(2) ! Kinsol additional out information
 integer*8 msbpre
 real*8 fnormtol, scsteptol
-real*8 scale((ntot+2)*(NS-2))
-real*8 constr((ntot+2)*(NS-2))
+real*8 scale(ntot*(NS-2))
+real*8 constr(ntot*(NS-2))
 integer*4  globalstrat, maxl, maxlrst
 integer neq ! Kinsol number of equations
 integer*4 max_niter
 common /psize/ neq ! Kinsol
 integer ierr
 
-neq=(ntot+2)*(NS-2)
+neq=ntot*(NS-2)
 
 ! INICIA KINSOL
 
-msbpre  = 10 ! maximum number of iterations without prec. setup (?)
+msbpre  = 100 ! maximum number of iterations without prec. setup (?)
 fnormtol = error ! Function-norm stopping tolerance
 scsteptol = error ! Function-norm stopping tolerance
 
-maxl = 1000 ! maximum Krylov subspace dimesion (?!?!?!) ! Esto se usa para el preconditioner
-maxlrst = 5 ! maximum number of restarts
+maxl = 2000 ! maximum Krylov subspace dimesion (?!?!?!) ! Esto se usa para el preconditioner
+maxlrst = 10 ! maximum number of restarts
 max_niter = 5000
 globalstrat = 0
 
@@ -103,14 +106,6 @@ constr = 0.0
 
 do i = 1, ntot*(NS-2)  !constraint vector
    constr(i) = 2.0 ! xh > 0
-enddo
-
-do i = ntot*(NS-2)+1, (ntot+1)*(NS-2)  !constraint vector
-   constr(i) = -1.0 ! LM <= 0 
-enddo
-
-do i = (ntot+1)*(NS-2)+1, (ntot+2)*(NS-2)  !constraint vector
-   constr(i) = 2.0 ! beta > 0 
 enddo
 
 
@@ -166,9 +161,9 @@ use brush
 use string
 integer i
 
-real*8 x1_old((ntot+2)*(NS-2))
-real*8 x1((ntot+2)*(NS-2))
-real*8 f((ntot+2)*(NS-2))
+real*8 x1_old(ntot*(NS-2))
+real*8 x1(ntot*(NS-2))
+real*8 f(ntot*(NS-2))
 
 x1 = 0.0
 do i = 1,neqs

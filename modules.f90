@@ -2,6 +2,8 @@ module string
 integer NS
 real*8, allocatable :: xfirst(:)
 real*8, allocatable :: xlast(:)
+real*8, allocatable :: LM(:)
+real*8, allocatable :: beta(:)
 endmodule
 
 module mkinsol

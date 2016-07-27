@@ -41,7 +41,7 @@ F_tot = F_tot + F_Mix_s
 F_Conf = 0.0
 
 do i = 1, newcuantas
-   F_Conf = F_Conf + (pro(i,cc)/q(cc))*dlog((pro(i,cc))/q(cc))*2.0*sigma ! it is 2.0*sigma because wa have brushes on both walls
+   F_Conf = F_Conf + (pro(i,cc))*dlog((pro(i,cc)))*2.0*sigma ! it is 2.0*sigma because wa have brushes on both walls
 enddo
 
 F_tot = F_tot + F_Conf 

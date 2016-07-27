@@ -28,7 +28,7 @@ call cadenas1(chains,ncha) ! generate only chains with first segment at z > 0
 do j=1,ncha
   if(conf.lt.cuantas) then
    conf=conf+1
-   print*, conf
+!   print*, conf
    flag = 0
       do k=1,long
         temp=int(chains(1,k,j)/delta)+1  ! put segments into the correct layer
