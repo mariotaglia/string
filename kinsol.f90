@@ -44,7 +44,7 @@ common /psize/ neq
 
 !   pp(:) = 1.0
 
-do i = 1, (NS-2)*ntot
+do i = 1, (NS-2)*(ntot+1)
    pp(i) = 1.0  / (1.0+exp(1.0-udata(i)))
 enddo
    ier = 0
@@ -58,21 +58,21 @@ use string
 implicit none
 integer *4 ier ! Kinsol error flag
 integer i
-real*8 x1(ntot*(NS-2)), xg1(ntot*(NS-2))
-real*8 x1_old(ntot*(NS-2)), xg1_old(ntot*(NS-2))
+real*8 x1((ntot+1)*(NS-2)), xg1((ntot+1)*(NS-2))
+real*8 x1_old((ntot+1)*(NS-2)), xg1_old((ntot+1)*(NS-2))
 integer*8 iout(15) ! Kinsol additional output information
 real*8 rout(2) ! Kinsol additional out information
 integer*8 msbpre
 real*8 fnormtol, scsteptol
-real*8 scale(ntot*(NS-2))
-real*8 constr(ntot*(NS-2))
+real*8 scale((ntot+1)*(NS-2))
+real*8 constr((ntot+1)*(NS-2))
 integer*4  globalstrat, maxl, maxlrst
 integer neq ! Kinsol number of equations
 integer*4 max_niter
 common /psize/ neq ! Kinsol
 integer ierr
 
-neq=ntot*(NS-2)
+neq=(ntot+1)*(NS-2)
 
 ! INICIA KINSOL
 
@@ -104,7 +104,7 @@ call fkinsetiin('MAX_NITER', max_niter, ier)
 
 constr = 0.0
 
-do i = 1, ntot*(NS-2)  !constraint vector
+do i = 1, (ntot+1)*(NS-2)  !constraint vector
    constr(i) = 2.0 ! xh > 0
 enddo
 
@@ -161,9 +161,9 @@ use brush
 use string
 integer i
 
-real*8 x1_old(ntot*(NS-2))
-real*8 x1(ntot*(NS-2))
-real*8 f(ntot*(NS-2))
+real*8 x1_old((ntot+1)*(NS-2))
+real*8 x1((ntot+1)*(NS-2))
+real*8 f((ntot+1)*(NS-2))
 
 x1 = 0.0
 do i = 1,neqs

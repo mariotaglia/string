@@ -7,8 +7,7 @@ use string
 use partfunc
 
 allocate (LM(NS-2))
-allocate (beta(NS-2))
-allocate (pp((ntot)*(NS-2)))
+allocate (pp((ntot+1)*(NS-2)))
 allocate (avpol(ntot, NS))
 allocate (avsol(ntot, NS))
 allocate (in1n(cuantas,ntot))

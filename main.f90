@@ -32,7 +32,7 @@ real*8 Na ! avogadros' number
 parameter (Na=6.02d23)
 integer cc,ccc
 
-real*8 x1(ntot*(NS-2)),xg1(ntot*(NS-2))   ! density solvent iteration vector
+real*8 x1((ntot+1)*(NS-2)),xg1((ntot+1)*(NS-2))   ! density solvent iteration vector
 real*8 zc(ntot)           ! z-coordinate layer 
 
 integer n                 ! number of lattice sites
@@ -110,12 +110,7 @@ enddo
 
 !!! Initial guess for LM = 0
 do ii = 1, NS-2
-LM(ii) = 31 !exp(69.0)  ! sqrt(tiny(xg1(1))) ! ln(LM)
-enddo
-
-!!! Initial guess for beta = 1.0
-do ii = 1, NS-2
-beta(ii) = 1.0d200 !37974486209955048822481522894.18567! 180
+xg1(ntot*(NS-2)+ii) = 1.0
 enddo
 
 x1 = xg1
@@ -140,10 +135,12 @@ countfile=cc+ccc-1
 
 iter=0                    ! iteration counter
 
+open(unit=10, file='out.out')
+
 ! Call solver 
 
    iter = 0
-   print*, 'solve: Enter solver ', (NS-2)*ntot, ' eqs'
+   print*, 'solve: Enter solver ', (NS-2)*(ntot+1), ' eqs'
    call call_kinsol(x1, xg1, ier)
 
 

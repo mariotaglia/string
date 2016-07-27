@@ -10,7 +10,7 @@ use string
 
 implicit none
 integer*4 ier2
-real*8 x(ntot*(NS-2)),f(ntot*(NS-2))
+real*8 x((ntot+1)*(NS-2)),f((ntot+1)*(NS-2))
 real*8 xh(ntot,NS)
 real*8 xpot(ntot, NS)
 integer i,j,k1,k2,ii,kk, jj,iz       ! dummy indices
@@ -20,7 +20,6 @@ real*8 algo, algo1, algo3
 real*8 algo2
 real*8 xtotal(1-Xulimit:ntot+Xulimit, NS)
 real*8 LM0(NS-2)
-real*8 beta0(NS-2) ! q/q'
 real*8 aa
 integer fl(2)
 real*8 arc(NS-1), sumarc, arc0
@@ -39,6 +38,10 @@ do ii = 1,NS-2
 do i=1,ntot                 
 xh(i,ii+1)=x(i+(ii-1)*ntot)  ! solvent density=volume fraction   
 enddo
+enddo
+
+do ii = 1, NS-2
+LM0(ii) = exp(x(ntot*(NS-2)+ii))
 enddo
 
 ! Retrive solvent for first and last
@@ -106,16 +109,18 @@ pro(:,ii) = pro(:, ii)/q(ii)
 
 enddo ! kk
 
-
-iter2 = 1
-norma2 = 1d100
-do while (norma2.gt.error2)
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  LOOP OVER STRING BEADS
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 do ii = 2, NS-1
+
+! update xpot
+
+do j = 1, ntot
+xpot(j,ii) = xpot(j,ii)*exp(LM0(ii-1)*(avpol(j,ii)-avpol(j,ii-1)))
+enddo
+
 jj = ii - 1 ! Lagrange multiplier index for ii
 
 q(ii) = 0.0
@@ -128,13 +133,6 @@ pro(i,ii) = shift
     do j=1, ntot
      pro(i,ii)= pro(i,ii) * xpot(j, ii)**in1n(i,j)
     enddo
-
-!    if(pro(i,ii).eq.0.0) then
-!      print*, i, ii
-!      stop
-!    endif
-    pro0(i,ii) = pro(i,ii)
-    call Wfunction(pro(i,ii),pro(i,ii-1), LM(jj), beta(jj)) ! solves for pro(i,ii) using W function, see notes
 
     q(ii)=q(ii)+pro(i,ii)
 
@@ -150,59 +148,19 @@ pro(:,ii) = pro(:,ii)/q(ii)
 enddo ! ii
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! norm by q
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Construction of arclenght vectors
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 sumarc = 0.0
 do ii = 1, NS-1
 arc(ii) = 0.0
-do i = 1, newcuantas
-arc(ii) = arc(ii) + abs(pro(i,ii)-pro(i,ii+1))
+do j = 1, ntot
+arc(ii) = arc(ii) + (avpol(j,ii+1)-avpol(j,ii))**2
 enddo
 sumarc = sumarc + arc(ii)
 enddo ! ii
 arc0 = sumarc / (float(NS)-1.0) ! target arclenght
 
-
-do ii = 2, NS-1
-jj=ii-1
-LM0(jj) = 0.0
-!print*, 'arc', jj, arc(jj), arc0
-do i = 1, newcuantas
-LM0(jj) = LM0(jj) + abs(log(pro(i,ii)*q(ii)/pro0(i,ii)))
-enddo
-LM0(jj) = log(LM0(jj)/arc0/beta(jj))
-beta0(jj)=q(ii)
-enddo
-
-norma2 = 0.0
-do ii=1,NS-2
-!print*, ii,'LM', LM(ii), LM0(ii)
-!print*, ii,'beta', beta(ii), beta0(ii)
-norma2 = norma2 + abs((LM(ii)-LM0(ii))/LM(ii)) + abs((beta(ii)-beta0(ii))/beta(ii))
-LM(ii) = LM0(ii)
-beta(ii) = beta0(ii)
-enddo
-
-if(mod(iter2,100).eq.0)print*,'      Inner Loop:', iter2, norma2
-if(mod(iter2,100).eq.0)write(10,*)'      Inner Loop:', iter2, norma2
-flush(10)
-iter2 = iter2 + 1
-enddo ! while
-
-!do i = 1, newcuantas
-!print*, i, pro(i,2),pro0(i,2),pro(i,1), pro(i,2)-pro(i,1)
-!enddo
-!print*, beta(1)
-!print*, LM(1)
-!print*, q(2)
-!print*, arc(1), arc0
-!stop
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! contruction of f and the volume fractions
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -213,15 +171,21 @@ do i=1,ntot
 enddo
 enddo
 
+do ii = 1, NS-2
+f(ntot*(NS-2)) = (arc(ii)-arc0)/arc0
+enddo
+
 iter=iter+1
 
 algo1 = 0.0
 do i = 1, (NS-2)*(ntot)
  algo1 = algo1 + f(i)**2
 end do
+algo2 = 0.0
+do i = (NS-2)*(ntot)+1, (NS-2)*(ntot+1)
+ algo2 = algo2 + f(i)**2
+enddo
 
-!PRINT*, iter, algo1+algo2+algo3, LM(1), beta(1)
-!PRINT*, iter, algo1+algo2+algo3,algo1,algo2,algo3, LM(1)
 norma=algo1
 print*, 'Outer Loop:', iter, norma
 write(10,*)'Outer Loop:', iter, norma
