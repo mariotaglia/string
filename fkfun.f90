@@ -19,17 +19,17 @@ integer n
 real*8 algo, algo1, algo3
 real*8 algo2
 real*8 xtotal(1-Xulimit:ntot+Xulimit, NS)
-real*16 LM0(NS-2)
-real*16 beta0(NS-2) ! q/q'
+real*8 LM0(NS-2)
+real*8 beta0(NS-2) ! q/q'
 real*8 aa
 integer fl(2)
-real*16 arc(NS-1), sumarc, arc0
-real*16 pro0(cuantas,NS)
+real*8 arc(NS-1), sumarc, arc0
+real*8 pro0(cuantas,NS)
 integer iter2
-real*16 norma2
+real*8 norma2
 real*8 error2
 
-error2 = 1.0d-10
+error2 = 1.0d-6
 shift = 1.0
 n = ntot
 
@@ -172,7 +172,7 @@ arc0 = sumarc / (float(NS)-1.0) ! target arclenght
 do ii = 2, NS-1
 jj=ii-1
 LM0(jj) = 0.0
-print*, 'arc', jj, arc(jj), arc0
+!print*, 'arc', jj, arc(jj), arc0
 do i = 1, newcuantas
 LM0(jj) = LM0(jj) + abs(log(pro(i,ii)*q(ii)/pro0(i,ii)))
 enddo
@@ -182,25 +182,25 @@ enddo
 
 norma2 = 0.0
 do ii=1,NS-2
-print*, ii,'LM', LM(ii), LM0(ii)
-print*, ii,'beta', beta(ii), beta0(ii)
-norma2 = norma2 + abs(LM(ii)-LM0(ii)) + abs(beta(ii)-beta0(ii))
+!print*, ii,'LM', LM(ii), LM0(ii)
+!print*, ii,'beta', beta(ii), beta0(ii)
+norma2 = norma2 + abs((LM(ii)-LM0(ii))/LM(ii)) + abs((beta(ii)-beta0(ii))/beta(ii))
 LM(ii) = LM0(ii)
 beta(ii) = beta0(ii)
 enddo
 
-print*,'      Inner Loop:', iter2, norma2
+if(mod(iter2,100).eq.0)print*,'      Inner Loop:', iter2, norma2
 iter2 = iter2 + 1
 enddo ! while
 
-do i = 1, newcuantas
-print*, i, pro(i,2),pro0(i,2),pro(i,1), pro(i,2)-pro(i,1)
-enddo
-print*, beta(1)
-print*, LM(1)
-print*, q(2)
-print*, arc(1), arc0
-stop
+!do i = 1, newcuantas
+!print*, i, pro(i,2),pro0(i,2),pro(i,1), pro(i,2)-pro(i,1)
+!enddo
+!print*, beta(1)
+!print*, LM(1)
+!print*, q(2)
+!print*, arc(1), arc0
+!stop
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! contruction of f and the volume fractions
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -230,17 +230,17 @@ end
 
 subroutine Wfunction(pro,prop,LM,beta) ! solves for pro(i,ii) using W function, see notes
 implicit none
-real*16 pro,prop,LM,beta
+real*8 pro,prop,LM,beta
 real*8 arg
 integer*4 nb, l, nerror
 real*8, external :: wapr
 real*8 cutoff
-real*16 pro0
+real*8 pro0
 
-real*16 qpro, qprop, qLM, qbeta, qpro0
-real*16 L1, L2
-real*16 lnarg
-real*16 tmp
+real*8 qpro, qprop, qLM, qbeta, qpro0
+real*8 L1, L2
+real*8 lnarg
+real*8 tmp
 
 qpro0 = pro
 cutoff = 20.0 ! minimum z to use asymptotic expression for W = exp(z), for z < w use WAPR 
