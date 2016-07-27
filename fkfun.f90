@@ -7,27 +7,23 @@ use bulk
 use longs
 use kai
 use string
-
 implicit none
 integer*4 ier2
 real*8 x(ntot*(NS-2)),f(ntot*(NS-2))
 real*8 xh(ntot,NS)
-real*8 xpot(ntot, NS)
 integer i,j,k1,k2,ii,kk, jj,iz       ! dummy indices
 integer err
 integer n
 real*8 algo, algo1, algo3
 real*8 algo2
 real*8 xtotal(1-Xulimit:ntot+Xulimit, NS)
-real*8 LM0(NS-2)
-real*8 beta0(NS-2) ! q/q'
 real*8 aa
 integer fl(2)
-real*8 arc(NS-1), sumarc, arc0
-real*8 pro0(cuantas,NS)
-integer iter2
-real*8 norma2
 real*8 error2
+
+! zspow
+real*8 xgpow(2*(NS-2)), x1pow(2*(NS-2))
+integer*4 ier
 
 error2 = 1.0d-6
 shift = 1.0
@@ -106,101 +102,26 @@ pro(:,ii) = pro(:, ii)/q(ii)
 
 enddo ! kk
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Solve for LM and beta using zspow
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+do ii=1, NS-2
+xgpow(ii) = LM(ii)
+xgpow(ii+NS-2) = beta(ii)
+enddo
+
+x1pow = xgpow
 
 iter2 = 1
-norma2 = 1d100
-do while (norma2.gt.error2)
+call call_zspow(x1pow, x1pow, ier, 2*(NS-2))
+stop
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!  LOOP OVER STRING BEADS
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-do ii = 2, NS-1
-jj = ii - 1 ! Lagrange multiplier index for ii
-
-q(ii) = 0.0
-avpol(:,ii) = 0.0
-
-do i=1,newcuantas ! loop over cuantas
-
-pro(i,ii) = shift
-
-    do j=1, ntot
-     pro(i,ii)= pro(i,ii) * xpot(j, ii)**in1n(i,j)
-    enddo
-
-!    if(pro(i,ii).eq.0.0) then
-!      print*, i, ii
-!      stop
-!    endif
-    pro0(i,ii) = pro(i,ii)
-    call Wfunction(pro(i,ii),pro(i,ii-1), LM(jj), beta(jj)) ! solves for pro(i,ii) using W function, see notes
-
-    q(ii)=q(ii)+pro(i,ii)
-
-    do j=1, ntot
-       avpol(j, ii)=avpol(j, ii)+pro(i, ii)*sigma*vsol/delta*vpol*in1n(i,j)
-       avpol(j, ii)=avpol(j, ii)+pro(i, ii)*sigma*vsol/delta*vpol*in1n(i,ntot-j+1) ! opposing wall
-    enddo
- 
-enddo ! i
-
-avpol(:,ii) = avpol(:,ii)/q(ii)
-pro(:,ii) = pro(:,ii)/q(ii)
-enddo ! ii
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! norm by q
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Construction of arclenght vectors
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-sumarc = 0.0
-do ii = 1, NS-1
-arc(ii) = 0.0
-do i = 1, newcuantas
-arc(ii) = arc(ii) + abs(pro(i,ii)-pro(i,ii+1))
-enddo
-sumarc = sumarc + arc(ii)
-enddo ! ii
-arc0 = sumarc / (float(NS)-1.0) ! target arclenght
-
-
-do ii = 2, NS-1
-jj=ii-1
-LM0(jj) = 0.0
-!print*, 'arc', jj, arc(jj), arc0
-do i = 1, newcuantas
-LM0(jj) = LM0(jj) + abs(log(pro(i,ii)*q(ii)/pro0(i,ii)))
-enddo
-LM0(jj) = log(LM0(jj)/arc0/beta(jj))
-beta0(jj)=q(ii)
+do ii=1, NS-2
+LM(ii) = x1pow(ii) 
+beta(ii) = x1pow(ii+NS-2)
 enddo
 
-norma2 = 0.0
-do ii=1,NS-2
-!print*, ii,'LM', LM(ii), LM0(ii)
-!print*, ii,'beta', beta(ii), beta0(ii)
-norma2 = norma2 + abs((LM(ii)-LM0(ii))/LM(ii)) + abs((beta(ii)-beta0(ii))/beta(ii))
-LM(ii) = LM0(ii)
-beta(ii) = beta0(ii)
-enddo
-
-if(mod(iter2,100).eq.0)print*,'      Inner Loop:', iter2, norma2
-iter2 = iter2 + 1
-enddo ! while
-
-!do i = 1, newcuantas
-!print*, i, pro(i,2),pro0(i,2),pro(i,1), pro(i,2)-pro(i,1)
-!enddo
-!print*, beta(1)
-!print*, LM(1)
-!print*, q(2)
-!print*, arc(1), arc0
-!stop
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! contruction of f and the volume fractions
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -280,3 +201,159 @@ endif
 qpro = tmp/qLM
 pro=qpro
 end subroutine
+
+subroutine FCN(xin, fout, nin, par)
+use string, only : NS
+use brush
+use partfunc
+use layer
+use volume
+use longs
+
+implicit none
+integer nin
+real*8 xin(nin), fout(nin)
+real*8 par(1)
+integer *4 ier
+integer ii,i
+real*8 LM0(NS-2), LM1(NS-2)
+real*8 beta0(NS-2), beta1(NS-2) ! q/q'
+real*8 pro0(cuantas,NS)
+real*8 arc(NS-1), sumarc, arc0
+real*8 norma2
+integer j,jj
+
+! retrive LM and beta from input
+do ii=1, NS-2
+LM0(ii) = xin(ii)
+beta0(ii) = xin(ii+NS-2)
+print*, ii, LM0(ii), beta0(ii)
+enddo
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!  LOOP OVER STRING BEADS
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+do ii = 2, NS-1
+jj = ii - 1 ! Lagrange multiplier index for ii
+
+q(ii) = 0.0
+avpol(:,ii) = 0.0
+
+do i=1,newcuantas ! loop over cuantas
+
+pro(i,ii) = shift
+
+    do j=1, ntot
+     pro(i,ii)= pro(i,ii) * xpot(j, ii)**in1n(i,j)
+    enddo
+
+!    if(pro(i,ii).eq.0.0) then
+!      print*, i, ii
+!      stop
+!    endif
+    pro0(i,ii) = pro(i,ii)
+    call Wfunction(pro(i,ii),pro(i,ii-1), LM0(jj), beta0(jj)) ! solves for pro(i,ii) using W function, see notes
+
+    q(ii)=q(ii)+pro(i,ii)
+
+    do j=1, ntot
+       avpol(j, ii)=avpol(j, ii)+pro(i, ii)*sigma*vsol/delta*vpol*in1n(i,j)
+       avpol(j, ii)=avpol(j, ii)+pro(i, ii)*sigma*vsol/delta*vpol*in1n(i,ntot-j+1) ! opposing wall
+    enddo
+ 
+enddo ! i
+
+avpol(:,ii) = avpol(:,ii)/q(ii)
+pro(:,ii) = pro(:,ii)/q(ii)
+enddo ! ii
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! norm by q
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Construction of arclenght vectors
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+sumarc = 0.0
+do ii = 1, NS-1
+arc(ii) = 0.0
+do i = 1, newcuantas
+arc(ii) = arc(ii) + abs(pro(i,ii)-pro(i,ii+1))
+enddo
+sumarc = sumarc + arc(ii)
+enddo ! ii
+arc0 = sumarc / (float(NS)-1.0) ! target arclenght
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! fout
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+do ii = 2, NS-1
+jj=ii-1
+LM1(jj) = 0.0
+!print*, 'arc', jj, arc(jj), arc0
+do i = 1, newcuantas
+LM1(jj) = LM1(jj) + abs(log(pro(i,ii)*q(ii)/pro0(i,ii)))
+enddo
+LM1(jj) = log(LM1(jj)/arc0/beta0(jj))
+beta1(jj)=q(ii)
+enddo
+
+norma2 = 0.0
+
+do ii=1,NS-2
+fout(ii) = 1-LM1(ii)/LM0(ii)
+norma2 = norma2 + abs((LM1(ii)-LM0(ii))/LM1(ii))
+enddo
+do ii=1,NS-2
+fout(ii+NS-2) = 1-beta1(ii)/beta0(ii)
+norma2 = norma2 + abs((beta1(ii)-beta0(ii))/beta1(ii))
+enddo
+
+print*,LM0(1), LM1(1)
+print*,beta0(1), beta1(1)
+print*,'      Inner Loop:', iter2, norma2
+iter2 = iter2 + 1
+
+end subroutine
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+! Subrutina que llama a zspow
+!
+
+subroutine call_zspow(x1, xg1, ier,ntot)
+implicit none
+      
+integer ntot
+integer NSIG
+integer ITEMAX
+real*8 par(1)
+real*8 WK(((ntot)*(3*(ntot)+15))/2)
+real*8 x1(ntot), xg1(ntot)
+real*8 fnorm
+integer*4 ier
+integer ier_zspow
+integer i
+
+! IMSL
+
+NSIG = 6
+ITEMAX = 200
+
+x1 = xg1
+
+call ZSPOW(NSIG,ntot,ITEMAX,PAR, x1, fnorm, WK, ier_zspow)
+print*, ier_zspow
+stop
+ier = -ier_zspow ! errores invertidos
+return
+end
+
+
+
+
