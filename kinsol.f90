@@ -71,6 +71,8 @@ real*8 rout(2) ! Kinsol additional out information
 integer*8 msbpre
 real*8 fnormtol, scsteptol
 real*8 scale((ntot+1)*(NS-2))
+real*8 uscale((ntot+1)*(NS-2))
+real*8 fscale((ntot+1)*(NS-2))
 real*8 constr((ntot+1)*(NS-2))
 integer*4  globalstrat, maxl, maxlrst
 integer neq ! Kinsol number of equations
@@ -89,7 +91,7 @@ scsteptol = error ! Function-norm stopping tolerance
 maxl = 2000 ! maximum Krylov subspace dimesion (?!?!?!) ! Esto se usa para el preconditioner
 maxlrst = 10 ! maximum number of restarts
 max_niter = 5000
-globalstrat = 0
+globalstrat = 1
 
 call fnvinits(3, neq, ier) ! fnvinits inits NVECTOR module
 if (ier .ne. 0) then       ! 3 for Kinsol, neq ecuantion number, ier error flag (0 is OK)
@@ -128,7 +130,8 @@ endif
 call fkinspilssetprec(1, ier) ! preconditiones
 
 do i = 1, neq ! scaling vector
-  scale(i) = 1.0
+  uscale(i) = 1.0d40
+  fscale(i) = 1.0
 enddo
 
 do i = 1, neq ! Initial guess
@@ -136,7 +139,7 @@ do i = 1, neq ! Initial guess
       xg1(i) = x1(i)  
 enddo
 
-call fkinsol(x1, globalstrat, scale, scale, ier)         ! Llama a kinsol
+call fkinsol(x1, globalstrat, uscale, fscale, ier)         ! Llama a kinsol
 
 print*, 'IER:', ier
 

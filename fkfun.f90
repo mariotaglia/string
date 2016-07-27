@@ -191,7 +191,7 @@ enddo
 
 norma=algo1
 print*, 'Outer Loop:', iter, algo1, algo2, norma
-print*, LM0(1), arc0, arc(1)
+!print*, LM0(1), arc0, arc(1)
 flush(10)
 
 !do i = 1, (NS-2)*(ntot+1)

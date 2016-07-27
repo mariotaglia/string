@@ -10,7 +10,9 @@ call read ! read input from input.txt
 call allocation ! allocate arrays in memory
 call kai ! generate poor solvent
 call creador
+
 call solve ! solve the system
+
 end
 
 subroutine solve
@@ -24,17 +26,17 @@ use longs
 use kai
 use string
 implicit none
-
 integer ncha
 integer *4 ier ! Kinsol error flag
 real*8 pi ! pi
 real*8 Na ! avogadros' number              
 parameter (Na=6.02d23)
 integer cc,ccc
-
+real*8 xinput(ntot,NS)
+real*8 LMinput(NS)
 real*8 x1((ntot+1)*(NS-2)),xg1((ntot+1)*(NS-2))   ! density solvent iteration vector
 real*8 zc(ntot)           ! z-coordinate layer 
-
+integer mid
 integer n                 ! number of lattice sites
 integer itmax             ! maximum number of iteration allowed for 
 real*8 fnorm              ! L2 norm of residual vector function fcn
@@ -102,15 +104,48 @@ close(21)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  make initial guess by interpolation
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-do ii = 1, NS-2
+
+do i = 1, n
+xinput(i,1) = xfirst(i)
+xinput(i,NS) = xlast(i)
+enddo
+LMinput(1) = 0.0
+LMinput(NS) = 0.0
+
+mid=int(float(NS))/2.0+1
+
+! read xinput
+do ii = 2, mid-1
+do i = 1, n
+read(800+ii-1,*)xinput(i,ii)
+enddo
+read(800+ii-1,*)LMinput(ii)
+enddo
+
+do ii = mid+1,NS-1
+do i = 1, n
+read(800+ii-2,*)xinput(i,ii)
+enddo
+read(800+ii-2,*)LMinput(ii)
+enddo
+
 do i=1,n
-xg1(i+(ii-1)*n) = (xlast(i)-xfirst(i))*float(ii)/float(NS-1) + xfirst(i)
+xinput(i,mid) = (xinput(i,mid+1)+xinput(i,mid-1))/2.0
+!print*,i, xinput(i,1), xinput(i,2), xinput(i,3)
+enddo
+LMinput(mid) = (LMinput(mid+1)+LMinput(mid-1))/2.0
+
+
+do ii = 2, NS-1
+do i = 1, n
+xg1(ntot*(ii-2)+i) = xinput(i,ii)
+!print*, i, ii, xinput(i,ii)
 enddo
 enddo
 
-!!! Initial guess for LM = 0
-do ii = 1, NS-2
-xg1(ntot*(NS-2)+ii) = 0 !-0.27213976464426065
+do ii = 2, NS-1
+xg1(ntot*(NS-2)+(ii-1))=LMinput(ii) 
+!print*, ii, LMinput(ii)
 enddo
 
 x1 = xg1
@@ -150,7 +185,16 @@ enddo
 enddo
 do ii =1, NS-2
 print*, 'LM',ii, xg1(ntot*(NS-2)+ii)
+LM(ii) = xg1(ntot*(NS-2)+ii)
 enddo
+
+do ii = 1, NS-2
+do i = 1, ntot
+write(900+ii,*)avsol(i,ii+1)
+enddo
+write(900+ii,*)LM(ii)
+enddo
+
 
 avsol(:,1)=xfirst(:)
 avsol(:,NS)=xlast(:)
