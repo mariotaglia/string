@@ -5,6 +5,7 @@
 subroutine fkpsol(udata, uscale, fdata, fscale, vv, ftem, ier)
 use brush
 use mkinsol
+use string
 implicit none
 
 integer neq, i
@@ -14,7 +15,7 @@ integer *4 ier ! Kinsol error flag
 
 common /psize/ neq
 
-neq = ntot
+neq = (ntot+1)*(NS-2)
 
 do  i = 1, neq
    vv(i) = vv(i) * pp(i)
@@ -47,6 +48,11 @@ common /psize/ neq
 do i = 1, (NS-2)*(ntot+1)
    pp(i) = 1.0  / (1.0+exp(1.0-udata(i)))
 enddo
+do i = 1, (NS-2)*ntot+1,(NS-2)*(ntot+1)
+   pp(i) = 1.0 ! / (1.0+exp(1.0-udata(i)))
+enddo
+
+
    ier = 0
 return
 end
@@ -104,7 +110,7 @@ call fkinsetiin('MAX_NITER', max_niter, ier)
 
 constr = 0.0
 
-do i = 1, (ntot+1)*(NS-2)  !constraint vector
+do i = 1, (ntot)*(NS-2)  !constraint vector
    constr(i) = 2.0 ! xh > 0
 enddo
 
@@ -129,7 +135,6 @@ do i = 1, neq ! Initial guess
       x1(i) = x1_old(i)
       xg1(i) = x1(i)  
 enddo
-
 
 call fkinsol(x1, globalstrat, scale, scale, ier)         ! Llama a kinsol
 
@@ -159,12 +164,17 @@ end
 subroutine call_fkfun(x1_old)
 use brush
 use string
+use string
+implicit none
 integer i
+integer neqs
 
 real*8 x1_old((ntot+1)*(NS-2))
 real*8 x1((ntot+1)*(NS-2))
 real*8 f((ntot+1)*(NS-2))
+integer*4 ier
 
+neqs = (ntot+1)*(NS-2)
 x1 = 0.0
 do i = 1,neqs
   x1(i) = x1_old(i)

@@ -37,11 +37,14 @@ n = ntot
 do ii = 1,NS-2
 do i=1,ntot                 
 xh(i,ii+1)=x(i+(ii-1)*ntot)  ! solvent density=volume fraction   
+!print*, i,x(i+(ii-1)*ntot)
 enddo
 enddo
 
 do ii = 1, NS-2
-LM0(ii) = exp(x(ntot*(NS-2)+ii))
+LM0(ii) = (x(ntot*(NS-2)+ii))
+!LM0(ii) = exp(x(ntot*(NS-2)+ii))
+!print*, ii,LM0(ii)
 enddo
 
 ! Retrive solvent for first and last
@@ -118,7 +121,7 @@ do ii = 2, NS-1
 ! update xpot
 
 do j = 1, ntot
-xpot(j,ii) = xpot(j,ii)*exp(LM0(ii-1)*(avpol(j,ii)-avpol(j,ii-1)))
+xpot(j,ii) = xpot(j,ii)*exp(LM0(ii-1)*(xtotal(j,ii)-xtotal(j,ii-1)))
 enddo
 
 jj = ii - 1 ! Lagrange multiplier index for ii
@@ -172,7 +175,7 @@ enddo
 enddo
 
 do ii = 1, NS-2
-f(ntot*(NS-2)) = (arc(ii)-arc0)/arc0
+f(ntot*(NS-2)+ii) = -(arc(ii)-arc0)/arc0
 enddo
 
 iter=iter+1
@@ -187,10 +190,13 @@ do i = (NS-2)*(ntot)+1, (NS-2)*(ntot+1)
 enddo
 
 norma=algo1
-print*, 'Outer Loop:', iter, norma
-write(10,*)'Outer Loop:', iter, norma
+print*, 'Outer Loop:', iter, algo1, algo2, norma
+print*, LM0(1), arc0, arc(1)
 flush(10)
 
+!do i = 1, (NS-2)*(ntot+1)
+!print*, 'out', i, f(i)
+!enddo
 
 return
 end

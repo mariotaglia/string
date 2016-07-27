@@ -110,7 +110,7 @@ enddo
 
 !!! Initial guess for LM = 0
 do ii = 1, NS-2
-xg1(ntot*(NS-2)+ii) = 1.0
+xg1(ntot*(NS-2)+ii) = 0 !-0.27213976464426065
 enddo
 
 x1 = xg1
@@ -143,11 +143,13 @@ open(unit=10, file='out.out')
    print*, 'solve: Enter solver ', (NS-2)*(ntot+1), ' eqs'
    call call_kinsol(x1, xg1, ier)
 
-
 do ii = 1, NS-2
 do i=1,n
-avsol(i,ii+1)=x1(i+(ii-1)*ntot)  ! solvent density=volume fraction
+avsol(i,ii+1)=xg1(i+(ii-1)*ntot)  ! solvent density=volume fraction
 enddo
+enddo
+do ii =1, NS-2
+print*, 'LM',ii, xg1(ntot*(NS-2)+ii)
 enddo
 
 avsol(:,1)=xfirst(:)
