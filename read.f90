@@ -10,7 +10,10 @@ integer i
 !     reading in of variables from stdin
 
 read(8,*)nada
-read(8,*)NS
+read(8,*)NS0, NS
+
+read(8,*)nada
+read(8,*)FIX
 
 read(8,*),nada
 read(8,*),ntot

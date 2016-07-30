@@ -49,7 +49,7 @@ do i = 1, (NS-2)*(ntot+1)
    pp(i) = 1.0  / (1.0+exp(1.0-udata(i)))
 enddo
 do i = 1, (NS-2)*ntot+1,(NS-2)*(ntot+1)
-   pp(i) = 1.0 ! / (1.0+exp(1.0-udata(i)))
+   pp(i) = 1.0  / (1.0+exp(1.0-udata(i)))
 enddo
 
 
@@ -84,12 +84,12 @@ neq=(ntot+1)*(NS-2)
 
 ! INICIA KINSOL
 
-msbpre  = 100 ! maximum number of iterations without prec. setup (?)
+msbpre  = 1 ! maximum number of iterations without prec. setup (?)
 fnormtol = error ! Function-norm stopping tolerance
 scsteptol = error ! Function-norm stopping tolerance
 
 maxl = 2000 ! maximum Krylov subspace dimesion (?!?!?!) ! Esto se usa para el preconditioner
-maxlrst = 10 ! maximum number of restarts
+maxlrst = 0 ! maximum number of restarts
 max_niter = 5000
 globalstrat = 1
 
@@ -106,6 +106,7 @@ if (ier .ne. 0) then
  endif
 
 call fkinsetiin('MAX_SETUPS', msbpre, ier)  ! Additional input information
+
 call fkinsetrin('FNORM_TOL', fnormtol, ier)
 call fkinsetrin('SSTEP_TOL', scsteptol, ier)
 call fkinsetiin('MAX_NITER', max_niter, ier)
@@ -118,9 +119,11 @@ enddo
 
 
 call fkinsetvin('CONSTR_VEC', constr, ier) ! constraint vector
+
 ! CALL FKINSPTFQMR (MAXL, IER)
 call fkinspgmr(maxl, maxlrst, ier) !  Scale Preconditioned GMRES solution of linear system (???)
 !call fkinspbcg(maxl, ier) !  Scale Preconditioned BCG
+!CALL FKINDENSE (neq, ier)
 
 if (ier .ne. 0) then
   print*, 'call_kinsol: SUNDIALS_ERROR: FKINSPGMR returned IER = ', ier
@@ -130,7 +133,7 @@ endif
 call fkinspilssetprec(1, ier) ! preconditiones
 
 do i = 1, neq ! scaling vector
-  uscale(i) = 1.0d40
+  uscale(i) = 1.0
   fscale(i) = 1.0
 enddo
 

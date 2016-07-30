@@ -42,10 +42,15 @@ enddo
 enddo
 
 do ii = 1, NS-2
-LM0(ii) = (x(ntot*(NS-2)+ii))
+if (FIX.ne.1) then   
+   LM0(ii) = (x(ntot*(NS-2)+ii))
+else
+   LM0(ii) = fixLM(ii)
+endif
+enddo
+
 !LM0(ii) = exp(x(ntot*(NS-2)+ii))
 !print*, ii,LM0(ii)
-enddo
 
 ! Retrive solvent for first and last
 do i =1, n
@@ -175,7 +180,11 @@ enddo
 enddo
 
 do ii = 1, NS-2
-f(ntot*(NS-2)+ii) = -(arc(ii)-arc0)/arc0
+if(FIX.ne.1) then
+   f(ntot*(NS-2)+ii) = -(arc(ii)-arc0)/arc0
+else
+   f(ntot*(NS-2)+ii) = 0.0
+endif
 enddo
 
 iter=iter+1
@@ -197,59 +206,7 @@ flush(10)
 !do i = 1, (NS-2)*(ntot+1)
 !print*, 'out', i, f(i)
 !enddo
-
+ier2 = 0
 return
 end
 
-subroutine Wfunction(pro,prop,LM,beta) ! solves for pro(i,ii) using W function, see notes
-implicit none
-real*8 pro,prop,LM,beta
-real*8 arg
-integer*4 nb, l, nerror
-real*8, external :: wapr
-real*8 cutoff
-real*8 pro0
-
-real*8 qpro, qprop, qLM, qbeta, qpro0
-real*8 L1, L2
-real*8 lnarg
-real*8 tmp
-
-qpro0 = pro
-cutoff = 20.0 ! minimum z to use asymptotic expression for W = exp(z), for z < w use WAPR 
-
-qprop = prop
-qbeta = beta
-qLM = exp(LM) ! (log(LM)+1)
-
-nb = 0 ! upper branch, LM<0
-l = 0 ! not offset
-
-lnarg=log(qLM*qpro0)+(qLM*qbeta*qprop)
-
-if(lnarg.gt.cutoff) then
- L1 = lnarg
- L2 = log(lnarg)
- tmp = L1-L2+L2/L1
- tmp = tmp + L2*(-2.0+L2)/2/L1**2
- tmp = tmp + L2*(6.0-9.0*L2+2*L2**2)/6/L1**3
- tmp = tmp + L2*(-12.0+36.0*L2-22.0*L2**2+3.0*L2**3)/12.0/L1**4
- tmp = tmp + L2*(60.0-300.0*L2+350*L2**2-125*L2**3+12.0*L2**4)/60.0/L1**5
-else ! use WAPR
- arg = exp(lnarg)
- tmp = wapr(arg,nb,nerror,l)
-endif
-
-
-
-if(nerror.eq.1) then
-  print*,'Wfunction: Error in WAPR'
-  print*, arg, LM, pro, prop, beta
-  stop
-endif
-
-!print*, 'tmp', tmp
-!print*, 'pro0', pro0
-qpro = tmp/qLM
-pro=qpro
-end subroutine

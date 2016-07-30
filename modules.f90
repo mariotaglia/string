@@ -1,5 +1,5 @@
 module string
-integer NS
+integer NS, NS0, FIX
 real*8, allocatable :: xfirst(:)
 real*8, allocatable :: xlast(:)
 real*8, allocatable :: LM(:)
@@ -30,6 +30,7 @@ integer cuantas          ! number of polymer configuration or  bound sequences
 integer newcuantas          ! number of polymer configuration or  bound sequences
 
 integer ntot ! lattice sites
+real*8, allocatable :: fixLM(:)
 real*8, allocatable :: avpol(:,:) ! volume fraction polymers already adsorbed
 real*8, allocatable :: avsol(:,:) ! volume fraction polymers already adsorbed
 real*8, allocatable :: pro(:,:)   ! probabilities

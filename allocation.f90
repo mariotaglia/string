@@ -16,5 +16,5 @@ allocate (pro(cuantas, NS))
 allocate (q(NS))
 allocate (xfirst(ntot))
 allocate (xlast(ntot))
-
+allocate (fixLM(NS-2))
 end

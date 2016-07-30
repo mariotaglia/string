@@ -26,14 +26,22 @@ use longs
 use kai
 use string
 implicit none
+real*8, external :: LINTERPOL
+real*8 xpos
+integer IERR
 integer ncha
 integer *4 ier ! Kinsol error flag
 real*8 pi ! pi
 real*8 Na ! avogadros' number              
 parameter (Na=6.02d23)
 integer cc,ccc
-real*8 xinput(ntot,NS)
-real*8 LMinput(NS)
+real*8 vin(NS0), vout(NS-2)
+real*8 xinput(ntot,NS0)
+real*8 xoutput(ntot,NS)
+real*8 LMinput(NS0)
+real*8 LMoutput(NS)
+real*8 xxin(NS0), xxout(NS-2)
+integer*4 NI, NO
 real*8 x1((ntot+1)*(NS-2)),xg1((ntot+1)*(NS-2))   ! density solvent iteration vector
 real*8 zc(ntot)           ! z-coordinate layer 
 integer mid
@@ -107,45 +115,82 @@ close(21)
 
 do i = 1, n
 xinput(i,1) = xfirst(i)
-xinput(i,NS) = xlast(i)
+xinput(i,NS0) = xlast(i)
 enddo
-LMinput(1) = 0.0
-LMinput(NS) = 0.0
 
-mid=int(float(NS))/2.0+1
+LMinput(1) = 0.0
+LMinput(NS0) = 0.0
 
 ! read xinput
-do ii = 2, mid-1
+do ii = 2, NS0-1
 do i = 1, n
 read(800+ii-1,*)xinput(i,ii)
 enddo
 read(800+ii-1,*)LMinput(ii)
 enddo
 
-do ii = mid+1,NS-1
+xoutput(:,1) = xinput(:,1)
+xoutput(:,NS) = xinput(:,NS0)
+LMoutput(1) = LMinput(1)
+LMoutput(NS) = LMinput(NS0)
+
+do i = 1, NS0
+xxin(i) = float(i-1)/float(NS0-1)
+enddo
+do i = 2, NS-1
+xxout(i-1) = float(i-1)/float(NS-1)
+enddo
+
+NI = NS0
+NO = NS-2
+
 do i = 1, n
-read(800+ii-2,*)xinput(i,ii)
-enddo
-read(800+ii-2,*)LMinput(ii)
+ do j = 1,NS0
+ vin(j) = xinput(i,j)
+ enddo
+
+if(NI.ne.2) then 
+
+do j = 1,NS-2
+  xpos = xxout(j)
+  vout(j) = LINTERPOL (NI, xxin, vin, xpos , IERR)
+!  call pwl_approx_1d (NI, xxin, vin, NO, xxout, vout)
 enddo
 
-do i=1,n
-xinput(i,mid) = (xinput(i,mid+1)+xinput(i,mid-1))/2.0
-!print*,i, xinput(i,1), xinput(i,2), xinput(i,3)
-enddo
-LMinput(mid) = (LMinput(mid+1)+LMinput(mid-1))/2.0
+else
+  vout(1) = (vin(2)+vin(1))/2.0
+endif
 
+ do j = 2, NS-1
+ xoutput(i,j) = vout(j-1)
+ enddo
+enddo
+
+NI = NS0
+NO = NS-2
+if(NI.ne.2) then 
+do j = 1,NS-2
+  xpos = xxout(j)
+  vout(j) = LINTERPOL (NI, xxin,LMinput, xpos , IERR)
+!  call pwl_approx_1d (NI, xxin, vin, NO, xxout, vout)
+enddo
+
+else
+  vout(1) = (LMinput(2)+LMinput(1))/2.0
+endif
+do j = 2, NS-1
+LMoutput(j)= vout(j-1)
+enddo
 
 do ii = 2, NS-1
 do i = 1, n
-xg1(ntot*(ii-2)+i) = xinput(i,ii)
-!print*, i, ii, xinput(i,ii)
+xg1(ntot*(ii-2)+i) = xoutput(i,ii)
 enddo
 enddo
 
 do ii = 2, NS-1
-xg1(ntot*(NS-2)+(ii-1))=LMinput(ii) 
-!print*, ii, LMinput(ii)
+xg1(ntot*(NS-2)+(ii-1))=LMoutput(ii) 
+fixLM(ii-1) = LMoutput(ii)
 enddo
 
 x1 = xg1
@@ -153,6 +198,17 @@ x1 = xg1
 do i = 1,n
 zc(i)= (i-0.5) * delta
 enddo
+
+
+do i = 1, n
+print*, i, xinput(i,:)
+enddo
+
+do i = 1, n
+print*, i, xoutput(i,:)
+enddo
+print*, LMinput
+print*, LMoutput
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     computation starts
@@ -185,7 +241,15 @@ enddo
 enddo
 do ii =1, NS-2
 print*, 'LM',ii, xg1(ntot*(NS-2)+ii)
-LM(ii) = xg1(ntot*(NS-2)+ii)
+if(FIX.ne.1) then
+  LM(ii) = xg1(ntot*(NS-2)+ii)
+else
+  LM(ii) = fixLM(ii)
+endif
+enddo
+
+do ii=2,NS-1
+write(1010,*)ii,LM(ii)
 enddo
 
 do ii = 1, NS-2
