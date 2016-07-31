@@ -126,7 +126,7 @@ do ii = 2, NS-1
 ! update xpot
 
 do j = 1, ntot
-xpot(j,ii) = xpot(j,ii)*exp(LM0(ii-1)*(xtotal(j,ii)-xtotal(j,ii-1)))
+xpot(j,ii) = xpot(j,ii)*exp(LM0(ii-1)*(xtotal(j,ii+1)-xtotal(j,ii-1)))
 enddo
 
 jj = ii - 1 ! Lagrange multiplier index for ii
