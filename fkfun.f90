@@ -17,6 +17,9 @@ integer n
 real*8 algo
 real*8 algo2
 real*8 xtotal(1-Xulimit:ntot+Xulimit)
+integer ix,iy,jx,jy,kx,ky,k
+integer, external :: imap, mapx, mapy
+real*8 avpol_tmp(ntot)
 
 shift = 1.0d100
 
@@ -32,39 +35,66 @@ xtotal(i) = 1.0-xh(i)
 enddo
 
 avpol = 0.0 
+avpol_tmp = 0.0 
 
 ! calculation of xpot
 do i = 1, ntot
 xpot(i) = xh(i)**(vpol)
-do j = -Xulimit, Xulimit 
- xpot(i) = xpot(i)*dexp(Xu(j)*xtotal(i+j)*st/(vpol*vsol))
+ ix=mapx(i)
+ iy=mapy(i)
+do jx = -Xulimit, Xulimit 
+  do jy = -Xulimit, Xulimit 
+  kx = ix+jx
+  kx= mod(kx-1+5*dimx, dimx) + 1
+  ky = ix+jy
+  ky= mod(ky-1+5*dimy, dimy) + 1
+  k = imap(kx,ky)
+
+ xpot(i) = xpot(i)*dexp(Xu(jx,jy)*xtotal(k)*st/(vpol*vsol))
+enddo
 enddo
 enddo
 
 !    probability distribution
-q=0.0d0                   ! init q to zero
 
+do ii = 1, dimx ! loop over grafting pos
+q=0.0d0                   ! init q to zero
+avpol_tmp=0.0
 do i=1,newcuantas ! loop over cuantas
 
 pro(i) = shift
 
-    do j=1, ntot
-     pro(i)= pro(i) * xpot(j)**in1n(i,j)
+    do j=1, long
+     k = in1n(i,j)
+     kx=mapx(k)+(ii-1)
+     kx= mod(kx-1+5*dimx, dimx) + 1
+     ky=mapy(j)
+     k = imap(kx,ky)
+     pro(i)= pro(i) * xpot(k)**in1n(i,j)
     enddo
 
     q=q+pro(i)
 
-    do j=1, ntot
-       avpol(j)=avpol(j)+pro(i)*sigma*vsol/delta*vpol*in1n(i,j)
-       avpol(j)=avpol(j)+pro(i)*sigma*vsol/delta*vpol*in1n(i,ntot-j+1) ! opposing wall
+    do j=1,long
+     k = in1n(i,j)
+     kx=mapx(k)+(ii-1)
+     kx= mod(kx-1+5*dimx, dimx) + 1
+     ky=mapy(j)
+     k = imap(kx,ky)
+     avpol_tmp(k)=avpol_tmp(k)+pro(i)*sigma*vsol/delta*vpol/delta
+     ky = dimy-ky+1
+     k = imap(kx,ky)
+     avpol(k)=avpol(k)+pro(i)*sigma*vsol/delta*vpol ! opposing wall
     enddo
  
 enddo ! i
 
 ! norm by q
 
-avpol = avpol/q
+avpol_tmp = avpol_tmp/q
+avpol = avpol + avpol_tmp
 
+enddo ! ii
 ! contruction of f and the volume fractions
 
 do i=1,n

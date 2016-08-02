@@ -23,6 +23,8 @@ use longs
 use kai
 implicit none
 
+integer ix, iy
+integer, external :: imap, mapx, mapy
 integer ncha
 integer *4 ier ! Kinsol error flag
 real*8 pi ! pi
@@ -39,7 +41,7 @@ real*8 fnorm              ! L2 norm of residual vector function fcn
 
 integer i,j,k,m,ii,flag,c, jj ! dummy indices
 
-INTEGER temp
+INTEGER temp, tempx, tempy
 real*8 tempr
 real*8 tmp
 
@@ -127,15 +129,18 @@ do j=1,ncha
 
    flag = 0
       do k=1,long
-        temp=int(chains(1,k,j)/delta)+1  ! put segments into the correct layer
-           if(temp.gt.ntot)flag = 1
+        tempx=int(chains(1,k,j)/delta)+1  ! put segments into the correct layer
+        tempy=int(chains(2,k,j)/delta)+1  ! put segments into the correct layer
+        if(tempy.gt.dimy)flag = 1
       enddo ! k
 
       if(flag.eq.0) then
       newcuantas=newcuantas+1
        do k=1,long
-        temp=int(chains(1,k,j)/delta)+1  ! put segments into the correct layer
-        in1n(newcuantas,temp) =  in1n(newcuantas,temp) + 1
+        tempx=int(chains(1,k,j)/delta)+1  ! put segments into the correct layer
+        tempy=int(chains(2,k,j)/delta)+1  ! put segments into the correct layer
+        temp = imap(tempx,tempy)
+        in1n(newcuantas,k) =  temp
        enddo ! k
       endif
    endif
@@ -185,8 +190,11 @@ open(unit=321,file=denspolfilename)
 open(unit=330,file=denssolfilename)
 
 do i=1,n
-write(321,*)zc(i),avpol(i)
-write(330,*)zc(i),avsol(i)
+ix = mapx(i)
+iy = mapy(i)
+
+write(321,*)ix,iy,avpol(i)
+write(330,*)ix,iy,avsol(i)
 enddo
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

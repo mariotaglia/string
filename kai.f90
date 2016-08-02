@@ -16,7 +16,7 @@ implicit none
 integer seed
 real*8 xmin,xmax,ymin,ymax,zmin,zmax
 integer MCsteps ! numero de steps de MC
-
+integer jx,jy
 real*8 R,theta,z
 real*8 rn
 integer i, ii
@@ -69,9 +69,10 @@ MCsteps = 200
          R = x2
 
          vect = sqrt((x1-x2)**2 + (y1-y2)**2 + (z1-z2)**2) ! vector diferencia
-         j = int(R/delta) ! j tiene la celda donde cae el punto a integrar
-                          ! si R = delta/2 => j = 0 
+         jx = int(x2/delta) ! j tiene la celda donde cae el punto a integrar
+         jy = int(y2/delta) ! j tiene la celda donde cae el punto a integrar
 
+         
 
 !         if((j.gt.Xulimit).or.(j.lt.-Xulimit)) then
 !            print*,'kai: error', j, R, x2
@@ -79,7 +80,7 @@ MCsteps = 200
 
          if(vect.le.(cutoff)) then ! esta dentro de la esfera del cut-off   
          if(vect.ge.lseg) then ! esta dentro de la esfera del segmento
-         if((j.le.Xulimit).or.(j.ge.-Xulimit))Xu(j) = Xu(j) + ((lseg/vect)**6) ! incluye el jacobiano R(segmento)
+         Xu(jx,jy) = Xu(jx,jy) + ((lseg/vect)**6) ! incluye el jacobiano R(segmento)
          endif
          endif
 
@@ -88,8 +89,8 @@ MCsteps = 200
       enddo
 
       do j = -Xulimit, Xulimit
-      Xu(j) = Xu(j)/(MCsteps**3)*(2.0*cutoff)**3
-     write(111,*)j,Xu(j) ! residual size of iteration vector
+      Xu(jx,jy) = Xu(jx,jy)/(MCsteps**3)*(2.0*cutoff)**3
+     write(111,*)jx,jy,Xu(jx,jy) ! residual size of iteration vector
      enddo
 
 close(111)

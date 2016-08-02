@@ -5,7 +5,7 @@ endmodule
 
 module kai
 integer Xulimit
-real*8, allocatable :: Xu(:)
+real*8, allocatable :: Xu(:,:)
 real*8 st
 end module
 
@@ -22,7 +22,7 @@ real*8 norma
 integer cuantas          ! number of polymer configuration or  bound sequences
 integer newcuantas          ! number of polymer configuration or  bound sequences
 
-integer ntot ! lattice sites
+integer ntot,dimx,dimy ! lattice sites
 real*8, allocatable :: avpol(:) ! volume fraction polymers already adsorbed
 real*8, allocatable :: avsol(:) ! volume fraction polymers already adsorbed
 real*8, allocatable :: pro(:)   ! probabilities

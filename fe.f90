@@ -9,10 +9,11 @@ implicit none
 
 real*8 F_tot, F_tot2
 real*8 F_Mix_s, F_Conf, F_vdW
-integer iz, i, j
+integer iz, ix, iy, jx, jy, kx,ky, i, j, k
 real*8 sumpi, sumrho
 real*8 xtotal(1-Xulimit:ntot+Xulimit)
 real*8 mupol
+integer, external :: imap, mapx, mapy
 
 xtotal = 0.0
 do i = 1,ntot
@@ -49,9 +50,20 @@ F_tot = F_tot + F_Conf
 
 F_vdW = 0.0
 
-do iz = 1, ntot
- do j = -Xulimit, Xulimit
-   F_vdW = F_vdW - 0.5000*delta*xtotal(iz)*xtotal(iz+j)*Xu(j)*st/(vpol*vsol)/(vpol*vsol)
+do i = 1, ntot
+ ix=mapx(i)
+ iy=mapy(i)
+ do jx = -Xulimit, Xulimit
+ do jy = -Xulimit, Xulimit
+  kx = ix+jx
+  kx= mod(kx-1+5*dimx, dimx) + 1
+  ky = ix+jy
+  ky= mod(ky-1+5*dimy, dimy) + 1
+  k = imap(kx,ky)
+
+  F_vdW = F_vdW - 0.5000*delta*xtotal(i)*xtotal(k)*Xu(jx,jy)*st/(vpol*vsol)/(vpol*vsol)
+
+ enddo
  enddo
 enddo
 
