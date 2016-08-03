@@ -16,7 +16,7 @@ integer err
 integer n
 real*8 algo
 real*8 algo2
-real*8 xtotal(1-Xulimit:ntot+Xulimit)
+real*8 xtotal(ntot)
 integer ix,iy,jx,jy,kx,ky,k
 integer, external :: imap, mapx, mapy
 real*8 avpol_tmp(ntot)
@@ -47,10 +47,10 @@ do jx = -Xulimit, Xulimit
   kx = ix+jx
   kx= mod(kx-1+50*dimx, dimx) + 1
   ky = ix+jy
-  ky= mod(ky-1+50*dimy, dimy) + 1
-  k = imap(kx,ky)
-
- xpot(i) = xpot(i)*dexp(Xu(jx,jy)*xtotal(k)*st/(vpol*vsol))
+  if((ky.le.dimy).and.(ky.ge.1)) then
+    k = imap(kx,ky)
+    xpot(i) = xpot(i)*dexp(Xu(jx,jy)*xtotal(k)*st/(vpol*vsol))
+  endif
 enddo
 enddo
 enddo
