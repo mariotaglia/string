@@ -81,10 +81,10 @@ pro(i) = shift
      kx= mod(kx-1+50*dimx, dimx) + 1
      ky=mapy(k)
      k = imap(kx,ky)
-     avpol_tmp(k)=avpol_tmp(k)+pro(i)*sigma*vsol/delta*vpol/delta
+     avpol_tmp(k)=avpol_tmp(k)+pro(i)*sigma*vsol/delta*vpol
      ky = dimy-ky+1
      k = imap(kx,ky)
-     avpol_tmp(k)=avpol_tmp(k)+pro(i)*sigma*vsol/delta*vpol/delta ! opposing wall
+     avpol_tmp(k)=avpol_tmp(k)+pro(i)*sigma*vsol/delta*vpol ! opposing wall
     enddo
  
 enddo ! i
