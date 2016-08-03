@@ -61,7 +61,7 @@ do i = 1, ntot
   kx= mod(kx-1+50*dimx, dimx) + 1
   ky = iy+jy
 
-  if((ky.ge.1).or.(ky.le.dimy)) then
+  if((ky.ge.1).and.(ky.le.dimy)) then
   k = imap(kx,ky)
   F_vdW = F_vdW - 0.5000*delta*xtotal(i)*xtotal(k)*Xu(jx,jy)*st/(vpol*vsol)/(vpol*vsol)
   endif
