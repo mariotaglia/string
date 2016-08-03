@@ -62,7 +62,7 @@ q=0.0d0                   ! init q to zero
 avpol_tmp=0.0
 do i=1,newcuantas ! loop over cuantas
 
-pro(i) = shift
+pro(i,ii) = shift
 
     do j=1, long
      k = in1n(i,j)
@@ -70,10 +70,10 @@ pro(i) = shift
      kx= mod(kx-1+50*dimx, dimx) + 1
      ky=mapy(k)
      k = imap(kx,ky)
-     pro(i)= pro(i) * xpot(k)**in1n(i,j)
+     pro(i,ii)= pro(i,ii) * xpot(k)**in1n(i,j)
     enddo
 
-    q=q+pro(i)
+    q(ii)=q(ii)+pro(i,ii)
 
     do j=1,long
      k = in1n(i,j)
@@ -81,17 +81,17 @@ pro(i) = shift
      kx= mod(kx-1+50*dimx, dimx) + 1
      ky=mapy(k)
      k = imap(kx,ky)
-     avpol_tmp(k)=avpol_tmp(k)+pro(i)*sigma*vsol/delta*vpol
+     avpol_tmp(k)=avpol_tmp(k)+pro(i,ii)*sigma*vsol/delta*vpol
      ky = dimy-ky+1
      k = imap(kx,ky)
-     avpol_tmp(k)=avpol_tmp(k)+pro(i)*sigma*vsol/delta*vpol ! opposing wall
+     avpol_tmp(k)=avpol_tmp(k)+pro(i,ii)*sigma*vsol/delta*vpol ! opposing wall
     enddo
  
 enddo ! i
 
 ! norm by q
 
-avpol_tmp = avpol_tmp/q
+avpol_tmp = avpol_tmp/q(ii)
 avpol = avpol + avpol_tmp
 
 enddo ! ii
