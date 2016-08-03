@@ -45,9 +45,9 @@ xpot(i) = xh(i)**(vpol)
 do jx = -Xulimit, Xulimit 
   do jy = -Xulimit, Xulimit 
   kx = ix+jx
-  kx= mod(kx-1+5*dimx, dimx) + 1
+  kx= mod(kx-1+50*dimx, dimx) + 1
   ky = ix+jy
-  ky= mod(ky-1+5*dimy, dimy) + 1
+  ky= mod(ky-1+50*dimy, dimy) + 1
   k = imap(kx,ky)
 
  xpot(i) = xpot(i)*dexp(Xu(jx,jy)*xtotal(k)*st/(vpol*vsol))
@@ -67,8 +67,8 @@ pro(i) = shift
     do j=1, long
      k = in1n(i,j)
      kx=mapx(k)+(ii-1)
-     kx= mod(kx-1+5*dimx, dimx) + 1
-     ky=mapy(j)
+     kx= mod(kx-1+50*dimx, dimx) + 1
+     ky=mapy(k)
      k = imap(kx,ky)
      pro(i)= pro(i) * xpot(k)**in1n(i,j)
     enddo
@@ -78,13 +78,13 @@ pro(i) = shift
     do j=1,long
      k = in1n(i,j)
      kx=mapx(k)+(ii-1)
-     kx= mod(kx-1+5*dimx, dimx) + 1
-     ky=mapy(j)
+     kx= mod(kx-1+50*dimx, dimx) + 1
+     ky=mapy(k)
      k = imap(kx,ky)
      avpol_tmp(k)=avpol_tmp(k)+pro(i)*sigma*vsol/delta*vpol/delta
      ky = dimy-ky+1
      k = imap(kx,ky)
-     avpol(k)=avpol(k)+pro(i)*sigma*vsol/delta*vpol ! opposing wall
+     avpol_tmp(k)=avpol_tmp(k)+pro(i)*sigma*vsol/delta*vpol/delta ! opposing wall
     enddo
  
 enddo ! i

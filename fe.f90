@@ -56,9 +56,9 @@ do i = 1, ntot
  do jx = -Xulimit, Xulimit
  do jy = -Xulimit, Xulimit
   kx = ix+jx
-  kx= mod(kx-1+5*dimx, dimx) + 1
+  kx= mod(kx-1+50*dimx, dimx) + 1
   ky = ix+jy
-  ky= mod(ky-1+5*dimy, dimy) + 1
+  ky= mod(ky-1+50*dimy, dimy) + 1
   k = imap(kx,ky)
 
   F_vdW = F_vdW - 0.5000*delta*xtotal(i)*xtotal(k)*Xu(jx,jy)*st/(vpol*vsol)/(vpol*vsol)

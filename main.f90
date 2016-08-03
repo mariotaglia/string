@@ -129,17 +129,22 @@ do j=1,ncha
 
    flag = 0
       do k=1,long
-        tempx=int(chains(1,k,j)/delta)+1  ! put segments into the correct layer
-        tempy=int(chains(2,k,j)/delta)+1  ! put segments into the correct layer
+        tempx=int(chains(2,k,j)/delta)+1  ! put segments into the correct layer
+        tempx= mod(tempx-1+50*dimx, dimx) + 1
+
+        tempy=int(chains(1,k,j)/delta)+1  ! put segments into the correct layer
         if(tempy.gt.dimy)flag = 1
       enddo ! k
 
       if(flag.eq.0) then
       newcuantas=newcuantas+1
        do k=1,long
-        tempx=int(chains(1,k,j)/delta)+1  ! put segments into the correct layer
-        tempy=int(chains(2,k,j)/delta)+1  ! put segments into the correct layer
+        tempx=int(chains(2,k,j)/delta)+1  ! put segments into the correct layer
+        tempx= mod(tempx-1+50*dimx, dimx) + 1
+
+        tempy=int(chains(1,k,j)/delta)+1  ! put segments into the correct layer
         temp = imap(tempx,tempy)
+ 
         in1n(newcuantas,k) =  temp
        enddo ! k
       endif
