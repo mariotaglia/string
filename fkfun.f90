@@ -70,6 +70,28 @@ pro(i,ii) = shift
      kx= mod(kx-1+50*dimx, dimx) + 1
      ky=mapy(k)
      k = imap(kx,ky)
+
+     if(k.eq.-8) then
+       k = in1n(i,j)
+       ky=mapy(k)
+       print*, k, ky
+       stop
+
+!          1           1           1    1
+!           2          10
+!           0     1684300
+!          -8
+
+
+!           1           1           1    1
+!           2          -7
+!           0           0
+!          -8
+
+
+
+      endif
+
      pro(i,ii)= pro(i,ii) * xpot(k)
     enddo
 
