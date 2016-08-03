@@ -88,10 +88,12 @@ MCsteps = 200
       enddo
       enddo
 
-      do j = -Xulimit, Xulimit
+      do jx = -Xulimit, Xulimit
+      do jy = -Xulimit, Xulimit
       Xu(jx,jy) = Xu(jx,jy)/(MCsteps**3)*(2.0*cutoff)**3
-     write(111,*)jx,jy,Xu(jx,jy) ! residual size of iteration vector
-     enddo
+      write(111,*)jx,jy,Xu(jx,jy) ! residual size of iteration vector
+      enddo
+      enddo
 
 close(111)
 end
