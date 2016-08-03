@@ -70,7 +70,7 @@ pro(i,ii) = shift
      kx= mod(kx-1+50*dimx, dimx) + 1
      ky=mapy(k)
      k = imap(kx,ky)
-     pro(i,ii)= pro(i,ii) * xpot(k)**in1n(i,j)
+     pro(i,ii)= pro(i,ii) * xpot(k)
     enddo
 
     q(ii)=q(ii)+pro(i,ii)
