@@ -46,7 +46,7 @@ do jx = -Xulimit, Xulimit
   do jy = -Xulimit, Xulimit 
   kx = ix+jx
   kx= mod(kx-1+50*dimx, dimx) + 1
-  ky = ix+jy
+  ky = iy+jy
   if((ky.le.dimy).and.(ky.ge.1)) then
     k = imap(kx,ky)
     xpot(i) = xpot(i)*dexp(Xu(jx,jy)*xtotal(k)*st/(vpol*vsol))

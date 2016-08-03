@@ -11,7 +11,7 @@ real*8 F_tot, F_tot2
 real*8 F_Mix_s, F_Conf, F_vdW
 integer iz, ix, iy, jx, jy, kx,ky, i, j, k
 real*8 sumpi, sumrho
-real*8 xtotal(1-Xulimit:ntot+Xulimit)
+real*8 xtotal(ntot)
 real*8 mupol
 integer, external :: imap, mapx, mapy
 
@@ -59,11 +59,12 @@ do i = 1, ntot
  do jy = -Xulimit, Xulimit
   kx = ix+jx
   kx= mod(kx-1+50*dimx, dimx) + 1
-  ky = ix+jy
-  ky= mod(ky-1+50*dimy, dimy) + 1
-  k = imap(kx,ky)
+  ky = iy+jy
 
+  if((ky.ge.1).or.(ky.le.dimy)) then
+  k = imap(kx,ky)
   F_vdW = F_vdW - 0.5000*delta*xtotal(i)*xtotal(k)*Xu(jx,jy)*st/(vpol*vsol)/(vpol*vsol)
+  endif
 
  enddo
  enddo
