@@ -144,7 +144,6 @@ do j=1,ncha
 
         tempy=int(chains(1,k,j)/delta)+1  ! put segments into the correct layer
         temp = imap(tempx,tempy)
- 
         in1n(newcuantas,k) =  temp
        enddo ! k
       endif

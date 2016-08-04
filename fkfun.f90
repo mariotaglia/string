@@ -60,6 +60,8 @@ enddo
 do ii = 1, dimx ! loop over grafting pos
 q=0.0d0                   ! init q to zero
 avpol_tmp=0.0
+
+
 do i=1,newcuantas ! loop over cuantas
 
 pro(i,ii) = shift
