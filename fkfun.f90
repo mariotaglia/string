@@ -119,16 +119,29 @@ do i=1,newcuantas ! loop over cuantas
 
 pro(i,xx,ii) = shift
 
-    do j=1, ntot
-     pro(i,xx,ii)= pro(i,xx,ii) * xpot(j,ii)**in1n(i,j)
+    do j=1, long
+     k = in1n(i,j)
+     kx=mapx(k)+(ii-1)
+     kx= mod(kx-1+50*dimx, dimx) + 1
+     ky=mapy(k)
+     k = imap(kx,ky)
+     pro(i,xx,ii)= pro(i,xx,ii) * xpot(k,xx)
     enddo
 
     q(xx,ii)=q(xx,ii)+pro(i,xx,ii)
 
-    do j=1, ntot
-       avpol_tmp(j)=avpol_tmp(j)+pro(i,xx,ii)*sigma*vsol/delta*vpol*in1n(i,j)
-       avpol_tmp(j)=avpol_tmp(j)+pro(i,xx,ii)*sigma*vsol/delta*vpol*in1n(i,ntot-j+1) ! opposing wall
+    do j=1,long
+     k = in1n(i,j)
+     kx=mapx(k)+(ii-1)
+     kx= mod(kx-1+50*dimx, dimx) + 1
+     ky=mapy(k)
+     k = imap(kx,ky)
+     avpol_tmp(k)=avpol_tmp(k)+pro(i,xx,ii)*sigma*vsol/delta*vpol
+     ky = dimy-ky+1
+     k = imap(kx,ky)
+     avpol_tmp(k)=avpol_tmp(k)+pro(i,xx,ii)*sigma*vsol/delta*vpol ! opposing wall
     enddo
+ 
  
 enddo ! i
 
