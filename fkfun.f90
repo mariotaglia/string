@@ -30,6 +30,7 @@ real*8 pro0(cuantas,NS)
 integer iter2
 real*8 norma2
 real*8 error2
+integer xx
 
 error2 = 1.0d-5
 shift = 1.0
@@ -98,8 +99,7 @@ enddo
 !    probability distribution
 
 q=0.0d0                   ! init q to zero
-do ii = 1, dimx ! loop over grafting pos
-
+avpol = 0.0d0
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! CALCULATE FIRST AND LAST

@@ -33,7 +33,7 @@ integer ntot, dimx, dimy ! lattice sites
 real*8, allocatable :: fixLM(:)
 real*8, allocatable :: avpol(:,:) ! volume fraction polymers already adsorbed
 real*8, allocatable :: avsol(:,:) ! volume fraction polymers already adsorbed
-real*8, allocatable :: pro(:,:)   ! probabilities
+real*8, allocatable :: pro(:,:,:)   ! probabilities
 integer*4, allocatable :: in1n(:,:)
 
 
@@ -44,7 +44,7 @@ integer iter              ! counts number of iterations
 endmodule
 
 module partfunc
-real*8, allocatable :: q(:)
+real*8, allocatable :: q(:,:)
 endmodule
 
 module layer
