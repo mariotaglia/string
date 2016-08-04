@@ -22,24 +22,37 @@ conf=0                    ! counter of number of conformations
 
 newcuantas = 0
 
+
+
+
+
+
+
 do while (conf.lt.cuantas)
 call cadenas1(chains,ncha) ! generate only chains with first segment at z > 0
 
 do j=1,ncha
   if(conf.lt.cuantas) then
    conf=conf+1
-!   print*, conf
+
    flag = 0
       do k=1,long
-        temp=int(chains(1,k,j)/delta)+1  ! put segments into the correct layer
-           if(temp.gt.ntot)flag = 1
+        tempx=int(chains(2,k,j)/delta)+1  ! put segments into the correct layer
+        tempx= mod(tempx-1+50*dimx, dimx) + 1
+
+        tempy=int(chains(1,k,j)/delta)+1  ! put segments into the correct layer
+        if(tempy.gt.dimy)flag = 1
       enddo ! k
 
       if(flag.eq.0) then
       newcuantas=newcuantas+1
        do k=1,long
-        temp=int(chains(1,k,j)/delta)+1  ! put segments into the correct layer
-        in1n(newcuantas,temp) =  in1n(newcuantas,temp) + 1
+        tempx=int(chains(2,k,j)/delta)+1  ! put segments into the correct layer
+        tempx= mod(tempx-1+50*dimx, dimx) + 1
+
+        tempy=int(chains(1,k,j)/delta)+1  ! put segments into the correct layer
+        temp = imap(tempx,tempy)
+        in1n(newcuantas,k) =  temp
        enddo ! k
       endif
    endif

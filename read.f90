@@ -16,7 +16,8 @@ read(8,*)nada
 read(8,*)FIX
 
 read(8,*),nada
-read(8,*),ntot
+read(8,*),dimx, dimy
+ntot = dimx*dimy
 
 read(8,*),nada
 read(8,*)cuantas

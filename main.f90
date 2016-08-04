@@ -26,9 +26,15 @@ use longs
 use kai
 use string
 implicit none
+
+
 real*8, external :: LINTERPOL
 real*8 xpos
 integer IERR
+integer ix, iy
+integer, external :: imap, mapx, mapy
+
+
 integer ncha
 integer *4 ier ! Kinsol error flag
 real*8 pi ! pi
@@ -51,7 +57,7 @@ real*8 fnorm              ! L2 norm of residual vector function fcn
 
 integer i,j,k,m,ii,flag,c, jj ! dummy indices
 
-INTEGER temp
+INTEGER temp, tempx, tempy
 real*8 tempr
 real*8 tmp
 
@@ -199,7 +205,6 @@ do i = 1,n
 zc(i)= (i-0.5) * delta
 enddo
 
-
 do i = 1, n
 print*, i, xinput(i,:)
 enddo
@@ -276,8 +281,11 @@ open(unit=321,file=denspolfilename)
 open(unit=330,file=denssolfilename)
 
 do i=1,n
-write(321,*)zc(i),avpol(i, ii)
-write(330,*)zc(i),avsol(i, ii)
+ix = mapx(i)
+iy = mapy(i)
+
+write(321,*)ix,iy,avpol(i, ii)
+write(330,*)ix,iy,avsol(i, ii)
 enddo
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

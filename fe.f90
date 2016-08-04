@@ -8,12 +8,14 @@ use partfunc
 implicit none
 
 integer cc
+integer ii
 real*8 F_tot, F_tot2
 real*8 F_Mix_s, F_Conf, F_vdW
-integer iz, i, j
+integer iz, ix, iy, jx, jy, kx,ky, i, j, k
 real*8 sumpi, sumrho
-real*8 xtotal(1-Xulimit:ntot+Xulimit)
+real*8 xtotal(ntot)
 real*8 mupol
+integer, external :: imap, mapx, mapy
 
 xtotal = 0.0
 do i = 1,ntot
@@ -40,8 +42,10 @@ F_tot = F_tot + F_Mix_s
 
 F_Conf = 0.0
 
+do ii = 1, dimx
 do i = 1, newcuantas
-   F_Conf = F_Conf + (pro(i,cc))*log((pro(i,cc)))*2.0*sigma ! it is 2.0*sigma because wa have brushes on both walls
+   F_Conf = F_Conf + (pro(i,ii,cc))*log((pro(i,ii,cc)))*2.0*sigma ! it is 2.0*sigma because wa have brushes on both walls
+enddo
 enddo
 
 F_tot = F_tot + F_Conf 
@@ -50,9 +54,21 @@ F_tot = F_tot + F_Conf
 
 F_vdW = 0.0
 
-do iz = 1, ntot
- do j = -Xulimit, Xulimit
-   F_vdW = F_vdW - 0.5000*delta*xtotal(iz)*xtotal(iz+j)*Xu(j)*st/(vpol*vsol)/(vpol*vsol)
+do i = 1, ntot
+ ix=mapx(i)
+ iy=mapy(i)
+ do jx = -Xulimit, Xulimit
+ do jy = -Xulimit, Xulimit
+  kx = ix+jx
+  kx= mod(kx-1+50*dimx, dimx) + 1
+  ky = iy+jy
+
+  if((ky.ge.1).and.(ky.le.dimy)) then
+  k = imap(kx,ky)
+  F_vdW = F_vdW - 0.5000*delta*xtotal(i)*xtotal(k)*Xu(jx,jy)*st/(vpol*vsol)/(vpol*vsol)
+  endif
+
+ enddo
  enddo
 enddo
 
@@ -88,13 +104,18 @@ enddo
 sumpi = (delta/vsol)*sumpi
 sumrho = (delta/vsol)*sumrho
 
-F_tot2 = -2.0*sigma*log(q(cc)/shift) + sumpi + sumrho -F_vdW  ! It is 2.0*sigma because we have brush on both walls
+F_tot2 = 0.0
+do ii = 1, dimx
+F_tot2 = F_tot2 - 2.0*sigma*log(q(ii,cc)/shift) 
+enddo
+
+F_tot2 = F_tot2 + sumpi + sumrho -F_vdW  ! It is 2.0*sigma because we have brush on both walls
 
 print*, 'fe: Free energy 2:', F_tot2,cc
 
 ! Calcula mupol
 
-mupol = -log(q(cc)/shift)
+mupol = -log(q(1,cc)/shift)
  
 
 open(unit=20, file='F_tot.dat', access='append')
