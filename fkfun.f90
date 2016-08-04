@@ -18,8 +18,10 @@ integer err
 integer n
 real*8 algo, algo1, algo3
 real*8 algo2
-<<<<<<< HEAD
-real*8 xtotal(1-Xulimit:ntot+Xulimit, NS)
+real*8 xtotal(ntot, NS)
+integer ix,iy,jx,jy,kx,ky,k
+integer, external :: imap, mapx, mapy
+real*8 avpol_tmp(ntot)
 real*8 LM0(NS-2)
 real*8 aa
 integer fl(2)
@@ -32,12 +34,6 @@ real*8 error2
 error2 = 1.0d-5
 shift = 1.0
 n = ntot
-=======
-real*8 xtotal(ntot)
-integer ix,iy,jx,jy,kx,ky,k
-integer, external :: imap, mapx, mapy
-real*8 avpol_tmp(ntot)
->>>>>>> equil2D
 
 ! Retrive values from input vector
 ! solvent from 1 to NS-2
@@ -74,22 +70,15 @@ enddo
 
 ! init variables
 avpol = 0.0 
-<<<<<<< HEAD
 avpol(:,1)=1-xh(:,1)
 avpol(:,NS)=1-xh(:,NS)
-=======
 avpol_tmp = 0.0 
->>>>>>> equil2D
 
 ! calculation of xpot
 do ii = 1, NS
 do i = 1, ntot
-<<<<<<< HEAD
+
 xpot(i,ii) = xh(i,ii)**(vpol)
-do j = -Xulimit, Xulimit 
- xpot(i,ii) = xpot(i,ii)*dexp(Xu(j)*xtotal(i+j,ii)*st/(vpol*vsol))
-=======
-xpot(i) = xh(i)**(vpol)
  ix=mapx(i)
  iy=mapy(i)
 do jx = -Xulimit, Xulimit 
@@ -99,10 +88,10 @@ do jx = -Xulimit, Xulimit
   ky = iy+jy
   if((ky.le.dimy).and.(ky.ge.1)) then
     k = imap(kx,ky)
-    xpot(i) = xpot(i)*dexp(Xu(jx,jy)*xtotal(k)*st/(vpol*vsol))
+    xpot(i,ii) = xpot(i,ii)*dexp(Xu(jx,jy)*xtotal(k,ii)*st/(vpol*vsol))
   endif
->>>>>>> equil2D
-enddo
+  enddo
+ enddo
 enddo
 enddo
 
@@ -110,7 +99,6 @@ enddo
 
 q=0.0d0                   ! init q to zero
 do ii = 1, dimx ! loop over grafting pos
-avpol_tmp=0.0
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -125,25 +113,29 @@ do kk = 1, 2
 ii = fl(kk)
 jj = ii - 1 ! Lagrange multiplier index for ii
 
+do xx = 1, dimx 
+avpol_tmp=0.0
 do i=1,newcuantas ! loop over cuantas
 
-pro(i,ii) = shift
+pro(i,xx,ii) = shift
 
     do j=1, ntot
-     pro(i,ii)= pro(i,ii) * xpot(j,ii)**in1n(i,j)
+     pro(i,xx,ii)= pro(i,xx,ii) * xpot(j,ii)**in1n(i,j)
     enddo
 
-    q(ii)=q(ii)+pro(i, ii)
+    q(xx,ii)=q(xx,ii)+pro(i,xx,ii)
 
     do j=1, ntot
-       avpol(j,ii)=avpol(j, ii)+pro(i, ii)*sigma*vsol/delta*vpol*in1n(i,j)
-       avpol(j,ii)=avpol(j, ii)+pro(i, ii)*sigma*vsol/delta*vpol*in1n(i,ntot-j+1) ! opposing wall
+       avpol_tmp(j)=avpol_tmp(j)+pro(i,xx,ii)*sigma*vsol/delta*vpol*in1n(i,j)
+       avpol_tmp(j)=avpol_tmp(j)+pro(i,xx,ii)*sigma*vsol/delta*vpol*in1n(i,ntot-j+1) ! opposing wall
     enddo
  
 enddo ! i
 
-avpol(:,ii) = avpol(:,ii)/q(ii)
-pro(:,ii) = pro(:, ii)/q(ii)
+avpol(:,ii) = avpol(:,ii)+avpol_tmp(:)/q(xx,ii)
+pro(:,xx,ii) = pro(:,xx,ii)/q(xx,ii)
+
+enddo ! xx
 
 enddo ! kk
 
@@ -161,54 +153,42 @@ enddo
 
 jj = ii - 1 ! Lagrange multiplier index for ii
 
-q(ii) = 0.0
-avpol(:,ii) = 0.0
-
+do xx = 1, dimx
+avpol_tmp = 0.0
 do i=1,newcuantas ! loop over cuantas
 
-pro(i,ii) = shift
+pro(i,xx,ii) = shift
 
-<<<<<<< HEAD
-    do j=1, ntot
-     pro(i,ii)= pro(i,ii) * xpot(j, ii)**in1n(i,j)
-=======
     do j=1, long
      k = in1n(i,j)
      kx=mapx(k)+(ii-1)
      kx= mod(kx-1+50*dimx, dimx) + 1
      ky=mapy(k)
      k = imap(kx,ky)
-     pro(i,ii)= pro(i,ii) * xpot(k)
->>>>>>> equil2D
+     pro(i,xx,ii)= pro(i,xx,ii) * xpot(k,xx)
     enddo
 
-    q(ii)=q(ii)+pro(i,ii)
+    q(xx,ii)=q(xx,ii)+pro(i,xx,ii)
 
-<<<<<<< HEAD
-    do j=1, ntot
-       avpol(j, ii)=avpol(j, ii)+pro(i, ii)*sigma*vsol/delta*vpol*in1n(i,j)
-       avpol(j, ii)=avpol(j, ii)+pro(i, ii)*sigma*vsol/delta*vpol*in1n(i,ntot-j+1) ! opposing wall
-=======
     do j=1,long
      k = in1n(i,j)
      kx=mapx(k)+(ii-1)
      kx= mod(kx-1+50*dimx, dimx) + 1
      ky=mapy(k)
      k = imap(kx,ky)
-     avpol_tmp(k)=avpol_tmp(k)+pro(i,ii)*sigma*vsol/delta*vpol
+     avpol_tmp(k)=avpol_tmp(k)+pro(i,xx,ii)*sigma*vsol/delta*vpol
      ky = dimy-ky+1
      k = imap(kx,ky)
-     avpol_tmp(k)=avpol_tmp(k)+pro(i,ii)*sigma*vsol/delta*vpol ! opposing wall
->>>>>>> equil2D
+     avpol_tmp(k)=avpol_tmp(k)+pro(i,xx,ii)*sigma*vsol/delta*vpol ! opposing wall
     enddo
  
 enddo ! i
 
-avpol(:,ii) = avpol(:,ii)/q(ii)
-pro(:,ii) = pro(:,ii)/q(ii)
+avpol(:,ii) = avpol(:,ii) +avpol_tmp(:)/q(xx,ii)
+pro(:,xx,ii) = pro(:,xx,ii)/q(xx,ii)
+enddo ! xx
 enddo ! ii
 
-<<<<<<< HEAD
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Construction of arclenght vectors
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -224,12 +204,6 @@ enddo ! ii
 arc0 = sumarc / (float(NS)-1.0) ! target arclenght
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-=======
-avpol_tmp = avpol_tmp/q(ii)
-avpol = avpol + avpol_tmp
-
-enddo ! ii
->>>>>>> equil2D
 ! contruction of f and the volume fractions
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
