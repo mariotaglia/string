@@ -57,8 +57,8 @@ enddo
 
 !    probability distribution
 
-do ii = 1, dimx ! loop over grafting pos
 q=0.0d0                   ! init q to zero
+do ii = 1, dimx ! loop over grafting pos
 avpol_tmp=0.0
 
 
