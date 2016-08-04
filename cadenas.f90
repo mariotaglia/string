@@ -24,12 +24,6 @@ conf=0                    ! counter of number of conformations
 
 newcuantas = 0
 
-
-
-
-
-
-
 do while (conf.lt.cuantas)
 call cadenas1(chains,ncha) ! generate only chains with first segment at z > 0
 
