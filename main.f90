@@ -103,7 +103,7 @@ enddo
 
 if (infile.ge.1) then
 do i=1,n
-read(100,*)tempr,x1(i) 
+read(100,*)tempx,tempy, x1(i) 
 xg1(i) = x1(i)  ! solvent
 enddo   
 endif
