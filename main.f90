@@ -182,6 +182,10 @@ enddo
    call call_kinsol(x1, xg1, ier)
 
 do i=1,n
+write(101,*)i,i, x1(i)
+enddo
+
+do i=1,n
 avsol(i)=x1(i) ! retrive xsol from solution
 enddo
 
