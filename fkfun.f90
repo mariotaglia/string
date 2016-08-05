@@ -101,6 +101,7 @@ enddo
 q=0.0d0                   ! init q to zero
 avpol = 0.0d0
 
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! CALCULATE FIRST AND LAST
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -125,7 +126,7 @@ pro(i,xx,ii) = shift
      kx= mod(kx-1+50*dimx, dimx) + 1
      ky=mapy(k)
      k = imap(kx,ky)
-     pro(i,xx,ii)= pro(i,xx,ii) * xpot(k,xx)
+     pro(i,xx,ii)= pro(i,xx,ii) * xpot(k,ii)
     enddo
 
     q(xx,ii)=q(xx,ii)+pro(i,xx,ii)
@@ -178,7 +179,7 @@ pro(i,xx,ii) = shift
      kx= mod(kx-1+50*dimx, dimx) + 1
      ky=mapy(k)
      k = imap(kx,ky)
-     pro(i,xx,ii)= pro(i,xx,ii) * xpot(k,xx)
+     pro(i,xx,ii)= pro(i,xx,ii) * xpot(k,ii)
     enddo
 
     q(xx,ii)=q(xx,ii)+pro(i,xx,ii)
