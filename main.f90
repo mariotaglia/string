@@ -104,8 +104,8 @@ open(unit=20, file='first.dat')
 open(unit=21, file='last.dat')
 
 do i=1,n
-read(20,*)tempr,xfirst(i) 
-read(21,*)tempr,xlast(i) 
+read(20,*)tempx,tempy,xfirst(i) 
+read(21,*)tempx,tempy,xlast(i) 
 enddo   
 
 close(20)
