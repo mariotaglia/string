@@ -254,7 +254,7 @@ endif
 enddo
 
 do ii=2,NS-1
-write(1010,*)ii,LM(ii)
+write(1010,*)ii,LM(ii-1)
 enddo
 
 do ii = 1, NS-2
