@@ -90,8 +90,8 @@ scsteptol = error ! Function-norm stopping tolerance
 
 maxl = 2000 ! maximum Krylov subspace dimesion (?!?!?!) ! Esto se usa para el preconditioner
 maxlrst = 0 ! maximum number of restarts
-max_niter = 5000
-globalstrat = 1
+max_niter = 20000
+globalstrat = 0
 
 call fnvinits(3, neq, ier) ! fnvinits inits NVECTOR module
 if (ier .ne. 0) then       ! 3 for Kinsol, neq ecuantion number, ier error flag (0 is OK)
@@ -109,7 +109,7 @@ call fkinsetiin('MAX_SETUPS', msbpre, ier)  ! Additional input information
 
 call fkinsetrin('FNORM_TOL', fnormtol, ier)
 call fkinsetrin('SSTEP_TOL', scsteptol, ier)
-call fkinsetiin('MAX_NITER', max_niter, ier)
+!call fkinsetiin('MAX_NITER', max_niter, ier)
 
 constr = 0.0
 
@@ -150,7 +150,7 @@ if (ier .lt. 0) then
       print*, 'call_kinsol: SUNDIALS_ERROR: FKINSOL returned IER = ', ier
       print*, 'call_kinsol: Linear Solver returned IER = ', iout(9)
       call fkinfree
-      stop
+!      stop
 endif
 
 do i = 1, neq ! output
