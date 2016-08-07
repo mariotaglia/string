@@ -199,6 +199,8 @@ xg1(ntot*(NS-2)+(ii-1))=LMoutput(ii)
 fixLM(ii-1) = LMoutput(ii)
 enddo
 
+fixLM(1) = tempLM
+
 x1 = xg1
 
 do i = 1,n

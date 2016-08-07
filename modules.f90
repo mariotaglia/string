@@ -31,6 +31,7 @@ integer newcuantas          ! number of polymer configuration or  bound sequence
 
 integer ntot, dimx, dimy ! lattice sites
 real*8, allocatable :: fixLM(:)
+real*8, tempLM
 real*8, allocatable :: avpol(:,:) ! volume fraction polymers already adsorbed
 real*8, allocatable :: avsol(:,:) ! volume fraction polymers already adsorbed
 real*8, allocatable :: pro(:,:,:)   ! probabilities

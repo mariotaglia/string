@@ -237,6 +237,7 @@ enddo
 do ii = 1, NS-2
 if(FIX.ne.1) then
    f(ntot*(NS-2)+ii) = -(arc(ii)-arc0)/arc0
+   print*, 'ARC', ii, -(arc(ii)-arc0)/arc0
 else
    f(ntot*(NS-2)+ii) = 0.0
 endif
