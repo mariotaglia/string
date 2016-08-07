@@ -99,7 +99,7 @@ enddo
 !    probability distribution
 
 q(:,2:NS-1)=0.0d0                   ! init q to zero
-avpol(2:NS-1) = 0.0d0
+avpol(:,2:NS-1) = 0.0d0
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
