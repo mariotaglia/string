@@ -98,13 +98,18 @@ enddo
 
 !    probability distribution
 
-q=0.0d0                   ! init q to zero
-avpol = 0.0d0
+q(:,2:NS-1)=0.0d0                   ! init q to zero
+avpol(2:NS-1) = 0.0d0
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! CALCULATE FIRST AND LAST
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+if(iter.eq.0) then
+
+q=0.0d0                   ! init q to zero
+avpol=0.0d0
 
 fl(1) = 1 ! first
 fl(2) = NS ! last
@@ -152,6 +157,8 @@ pro(:,xx,ii) = pro(:,xx,ii)/q(xx,ii)
 enddo ! xx
 
 enddo ! kk
+
+endif
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  LOOP OVER STRING BEADS
