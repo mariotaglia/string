@@ -157,13 +157,11 @@ pro(:,xx,ii) = pro(:,xx,ii)/q(xx,ii)
 enddo ! xx
 
 do i = 1, ntot
-!if(abs(xh(i,ii)+avpol(i,ii)-1.0).gt.error2) then
-!  print*, 'fkfun: extreme points are no minima of free energy, ii=',ii
+if(abs(xh(i,ii)+avpol(i,ii)-1.0).gt.error2) then
+  print*, 'fkfun: extreme points are no minima of free energy, ii=',ii
   print*, i, ii, xh(i,ii)+avpol(i,ii)
-!endif
+endif
 enddo
-
-  stop
 
 enddo ! kk
 
