@@ -127,7 +127,7 @@ pro(i,xx,ii) = shift
 
     do j=1, long
      k = in1n(i,j)
-     kx=mapx(k)+(ii-1)
+     kx=mapx(k)+(xx-1)
      kx= mod(kx-1+50*dimx, dimx) + 1
      ky=mapy(k)
      k = imap(kx,ky)
@@ -138,7 +138,7 @@ pro(i,xx,ii) = shift
 
     do j=1,long
      k = in1n(i,j)
-     kx=mapx(k)+(ii-1)
+     kx=mapx(k)+(xx-1)
      kx= mod(kx-1+50*dimx, dimx) + 1
      ky=mapy(k)
      k = imap(kx,ky)
@@ -182,7 +182,7 @@ pro(i,xx,ii) = shift
 
     do j=1, long
      k = in1n(i,j)
-     kx=mapx(k)+(ii-1)
+     kx=mapx(k)+(xx-1)
      kx= mod(kx-1+50*dimx, dimx) + 1
      ky=mapy(k)
      k = imap(kx,ky)
@@ -193,7 +193,7 @@ pro(i,xx,ii) = shift
 
     do j=1,long
      k = in1n(i,j)
-     kx=mapx(k)+(ii-1)
+     kx=mapx(k)+(xx-1)
      kx= mod(kx-1+50*dimx, dimx) + 1
      ky=mapy(k)
      k = imap(kx,ky)

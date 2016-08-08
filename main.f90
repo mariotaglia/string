@@ -5,12 +5,12 @@
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-
+use seed1
 call read ! read input from input.txt
 call allocation ! allocate arrays in memory
 call kai ! generate poor solvent
 call creador
-
+seed = 435
 call solve ! solve the system
 
 end
