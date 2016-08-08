@@ -10,7 +10,7 @@ use string
 
 implicit none
 integer*4 ier2
-real*8 x((ntot+1)*(NS-2)),f((ntot+1)*(NS-2))
+real*8 x((ntot)*(NS-2)),f((ntot)*(NS-2))
 real*8 xh(ntot,NS)
 real*8 xpot(ntot, NS)
 integer i,j,k1,k2,ii,kk, jj,iz       ! dummy indices
@@ -46,11 +46,11 @@ enddo
 enddo
 
 do ii = 1, NS-2
-if (FIX.ne.1) then   
-   LM0(ii) = (x(ntot*(NS-2)+ii))
-else
+!if (FIX.ne.1) then   
+!   LM0(ii) = (x(ntot*(NS-2)+ii))
+!else
    LM0(ii) = fixLM(ii)
-endif
+!endif
 enddo
 
 !LM0(ii) = exp(x(ntot*(NS-2)+ii))
@@ -156,9 +156,18 @@ pro(:,xx,ii) = pro(:,xx,ii)/q(xx,ii)
 
 enddo ! xx
 
+do i = 1, ntot
+print*, xh(i,1),avpol(i,1),avpol(i,1)+xh(i,1)
+enddo
+stop
+
+
 enddo ! kk
 
 endif
+
+
+
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  LOOP OVER STRING BEADS
@@ -235,12 +244,12 @@ enddo
 enddo
 
 do ii = 1, NS-2
-if(FIX.ne.1) then
-   f(ntot*(NS-2)+ii) = -(arc(ii)-arc0)/arc0
+!if(FIX.ne.1) then
+!   f(ntot*(NS-2)+ii) = -(arc(ii)-arc0)/arc0
    print*, 'ARC', ii, -(arc(ii)-arc0)/arc0
-else
-   f(ntot*(NS-2)+ii) = 0.0
-endif
+!else
+!   f(ntot*(NS-2)+ii) = 0.0
+!endif
 enddo
 
 iter=iter+1
@@ -250,7 +259,7 @@ do i = 1, (NS-2)*(ntot)
  algo1 = algo1 + f(i)**2
 end do
 algo2 = 0.0
-do i = (NS-2)*(ntot)+1, (NS-2)*(ntot+1)
+do i = (NS-2)*(ntot)+1, (NS-2)*(ntot)
  algo2 = algo2 + f(i)**2
 enddo
 

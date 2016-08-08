@@ -15,7 +15,7 @@ integer *4 ier ! Kinsol error flag
 
 common /psize/ neq
 
-neq = (ntot+1)*(NS-2)
+neq = (ntot)*(NS-2)
 
 do  i = 1, neq
    vv(i) = vv(i) * pp(i)
@@ -45,12 +45,12 @@ common /psize/ neq
 
 !   pp(:) = 1.0
 
-do i = 1, (NS-2)*(ntot+1)
+do i = 1, (NS-2)*(ntot)
    pp(i) = 1.0  / (1.0+exp(1.0-udata(i)))
 enddo
-do i = 1, (NS-2)*ntot+1,(NS-2)*(ntot+1)
-   pp(i) = 1.0  / (1.0+exp(1.0-udata(i)))
-enddo
+!do i = 1, (NS-2)*ntot+1,(NS-2)*(ntot+1)
+!   pp(i) = 1.0  / (1.0+exp(1.0-udata(i)))
+!enddo
 
 
    ier = 0
@@ -64,23 +64,23 @@ use string
 implicit none
 integer *4 ier ! Kinsol error flag
 integer i
-real*8 x1((ntot+1)*(NS-2)), xg1((ntot+1)*(NS-2))
-real*8 x1_old((ntot+1)*(NS-2)), xg1_old((ntot+1)*(NS-2))
+real*8 x1((ntot)*(NS-2)), xg1((ntot)*(NS-2))
+real*8 x1_old((ntot)*(NS-2)), xg1_old((ntot)*(NS-2))
 integer*8 iout(15) ! Kinsol additional output information
 real*8 rout(2) ! Kinsol additional out information
 integer*8 msbpre
 real*8 fnormtol, scsteptol
-real*8 scale((ntot+1)*(NS-2))
-real*8 uscale((ntot+1)*(NS-2))
-real*8 fscale((ntot+1)*(NS-2))
-real*8 constr((ntot+1)*(NS-2))
+real*8 scale((ntot)*(NS-2))
+real*8 uscale((ntot)*(NS-2))
+real*8 fscale((ntot)*(NS-2))
+real*8 constr((ntot)*(NS-2))
 integer*4  globalstrat, maxl, maxlrst
 integer neq ! Kinsol number of equations
 integer*4 max_niter
 common /psize/ neq ! Kinsol
 integer ierr
 
-neq=(ntot+1)*(NS-2)
+neq=(ntot)*(NS-2)
 
 ! INICIA KINSOL
 
@@ -175,12 +175,12 @@ implicit none
 integer i
 integer neqs
 
-real*8 x1_old((ntot+1)*(NS-2))
-real*8 x1((ntot+1)*(NS-2))
-real*8 f((ntot+1)*(NS-2))
+real*8 x1_old((ntot)*(NS-2))
+real*8 x1((ntot)*(NS-2))
+real*8 f((ntot)*(NS-2))
 integer*4 ier
 
-neqs = (ntot+1)*(NS-2)
+neqs = (ntot)*(NS-2)
 x1 = 0.0
 do i = 1,neqs
   x1(i) = x1_old(i)

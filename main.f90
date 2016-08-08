@@ -48,7 +48,7 @@ real*8 LMinput(NS0)
 real*8 LMoutput(NS)
 real*8 xxin(NS0), xxout(NS-2)
 integer*4 NI, NO
-real*8 x1((ntot+1)*(NS-2)),xg1((ntot+1)*(NS-2))   ! density solvent iteration vector
+real*8 x1((ntot)*(NS-2)),xg1((ntot)*(NS-2))   ! density solvent iteration vector
 real*8 zc(ntot)           ! z-coordinate layer 
 integer mid
 integer n                 ! number of lattice sites
@@ -194,10 +194,10 @@ xg1(ntot*(ii-2)+i) = xoutput(i,ii)
 enddo
 enddo
 
-do ii = 2, NS-1
-xg1(ntot*(NS-2)+(ii-1))=LMoutput(ii) 
-fixLM(ii-1) = LMoutput(ii)
-enddo
+!do ii = 2, NS-1
+!xg1(ntot*(NS-2)+(ii-1))=LMoutput(ii) 
+!fixLM(ii-1) = LMoutput(ii)
+!enddo
 
 fixLM(1) = tempLM
 
@@ -238,7 +238,7 @@ open(unit=10, file='out.out')
 ! Call solver 
 
    iter = 0
-   print*, 'solve: Enter solver ', (NS-2)*(ntot+1), ' eqs'
+   print*, 'solve: Enter solver ', (NS-2)*(ntot), ' eqs'
    call call_kinsol(x1, xg1, ier)
 
 do ii = 1, NS-2
@@ -246,14 +246,14 @@ do i=1,n
 avsol(i,ii+1)=xg1(i+(ii-1)*ntot)  ! solvent density=volume fraction
 enddo
 enddo
-do ii =1, NS-2
-print*, 'LM',ii, xg1(ntot*(NS-2)+ii)
-if(FIX.ne.1) then
-  LM(ii) = xg1(ntot*(NS-2)+ii)
-else
-  LM(ii) = fixLM(ii)
-endif
-enddo
+!do ii =1, NS-2
+!print*, 'LM',ii, xg1(ntot*(NS-2)+ii)
+!if(FIX.ne.1) then
+!  LM(ii) = xg1(ntot*(NS-2)+ii)
+!else
+!  LM(ii) = fixLM(ii)
+!endif
+!enddo
 
 do ii=2,NS-1
 write(1010,*)ii,LM(ii-1)
