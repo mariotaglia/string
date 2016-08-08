@@ -33,7 +33,7 @@ real*8 error2
 integer xx
 
 error2 = 1.0d-5
-shift = 1.0
+shift = 1.0d100
 n = ntot
 
 ! Retrive values from input vector
