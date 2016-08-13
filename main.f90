@@ -177,7 +177,7 @@ NO = NS-2
 if(NI.ne.2) then 
 do j = 1,NS-2
   xpos = xxout(j)
-  vout(j) = LINTERPOL (NI, xxin,LMinput, xpos , IERR)
+  vout(j) = LINTERPOL (NI, xxin,LMinput, xpos , IERR)*NS0/NS
 !  call pwl_approx_1d (NI, xxin, vin, NO, xxout, vout)
 enddo
 

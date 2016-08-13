@@ -109,7 +109,7 @@ call fkinsetiin('MAX_SETUPS', msbpre, ier)  ! Additional input information
 
 call fkinsetrin('FNORM_TOL', fnormtol, ier)
 call fkinsetrin('SSTEP_TOL', scsteptol, ier)
-!call fkinsetiin('MAX_NITER', max_niter, ier)
+call fkinsetiin('MAX_NITER', max_niter, ier)
 
 constr = 0.0
 
