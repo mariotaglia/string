@@ -15,7 +15,7 @@ integer *4 ier ! Kinsol error flag
 
 common /psize/ neq
 
-neq = (ntot+1)*(NS-2)
+neq = (ntot+1)
 
 do  i = 1, neq
    vv(i) = vv(i) * pp(i)
@@ -45,10 +45,10 @@ common /psize/ neq
 
 !   pp(:) = 1.0
 
-do i = 1, (NS-2)*(ntot+1)
+do i = 1, ntot
    pp(i) = 1.0  / (1.0+exp(1.0-udata(i)))
 enddo
-do i = 1, (NS-2)*ntot+1,(NS-2)*(ntot+1)
+do i = ntot, ntot+1
    pp(i) = 1.0  / (1.0+exp(1.0-udata(i)))
 enddo
 
@@ -64,23 +64,23 @@ use string
 implicit none
 integer *4 ier ! Kinsol error flag
 integer i
-real*8 x1((ntot+1)*(NS-2)), xg1((ntot+1)*(NS-2))
-real*8 x1_old((ntot+1)*(NS-2)), xg1_old((ntot+1)*(NS-2))
+real*8 x1(ntot+1), xg1(ntot+1)
+real*8 x1_old(ntot+1), xg1_old(ntot+1)
 integer*8 iout(15) ! Kinsol additional output information
 real*8 rout(2) ! Kinsol additional out information
 integer*8 msbpre
 real*8 fnormtol, scsteptol
-real*8 scale((ntot+1)*(NS-2))
-real*8 uscale((ntot+1)*(NS-2))
-real*8 fscale((ntot+1)*(NS-2))
-real*8 constr((ntot+1)*(NS-2))
+real*8 scale(ntot+1)
+real*8 uscale(ntot+1)
+real*8 fscale(ntot+1)
+real*8 constr(ntot+1)
 integer*4  globalstrat, maxl, maxlrst
 integer neq ! Kinsol number of equations
 integer*4 max_niter
 common /psize/ neq ! Kinsol
 integer ierr
 
-neq=(ntot+1)*(NS-2)
+neq=(ntot+1)
 
 ! INICIA KINSOL
 
@@ -91,7 +91,7 @@ scsteptol = error ! Function-norm stopping tolerance
 maxl = 2000 ! maximum Krylov subspace dimesion (?!?!?!) ! Esto se usa para el preconditioner
 maxlrst = 0 ! maximum number of restarts
 max_niter = 20000
-globalstrat = 0
+globalstrat = 1
 
 call fnvinits(3, neq, ier) ! fnvinits inits NVECTOR module
 if (ier .ne. 0) then       ! 3 for Kinsol, neq ecuantion number, ier error flag (0 is OK)
@@ -113,7 +113,7 @@ call fkinsetiin('MAX_NITER', max_niter, ier)
 
 constr = 0.0
 
-do i = 1, (ntot)*(NS-2)  !constraint vector
+do i = 1, ntot  !constraint vector
    constr(i) = 2.0 ! xh > 0
 enddo
 
@@ -175,12 +175,12 @@ implicit none
 integer i
 integer neqs
 
-real*8 x1_old((ntot+1)*(NS-2))
-real*8 x1((ntot+1)*(NS-2))
-real*8 f((ntot+1)*(NS-2))
+real*8 x1_old(ntot+1)
+real*8 x1(ntot+1)
+real*8 f(ntot+1)
 integer*4 ier
 
-neqs = (ntot+1)*(NS-2)
+neqs = (ntot+1)
 x1 = 0.0
 do i = 1,neqs
   x1(i) = x1_old(i)

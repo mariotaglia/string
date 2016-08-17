@@ -1,3 +1,11 @@
+module segregated
+real*8 normaini
+real*8 sumnormaini
+real*8, allocatable :: xoutput(:,:)
+real*8, allocatable :: LMoutput(:)
+integer NS_current
+end module
+
 module string
 integer NS, NS0, FIX
 real*8, allocatable :: xfirst(:)

@@ -25,6 +25,7 @@ use seed1
 use longs
 use kai
 use string
+use segregated
 implicit none
 
 
@@ -43,12 +44,10 @@ parameter (Na=6.02d23)
 integer cc,ccc
 real*8 vin(NS0), vout(NS-2)
 real*8 xinput(ntot,NS0)
-real*8 xoutput(ntot,NS)
 real*8 LMinput(NS0)
-real*8 LMoutput(NS)
 real*8 xxin(NS0), xxout(NS-2)
 integer*4 NI, NO
-real*8 x1((ntot+1)*(NS-2)),xg1((ntot+1)*(NS-2))   ! density solvent iteration vector
+real*8 x1(ntot+1),xg1(ntot+1)   ! density solvent iteration vector
 real*8 zc(ntot)           ! z-coordinate layer 
 integer mid
 integer n                 ! number of lattice sites
@@ -188,19 +187,6 @@ do j = 2, NS-1
 LMoutput(j)= vout(j-1)
 enddo
 
-do ii = 2, NS-1
-do i = 1, n
-xg1(ntot*(ii-2)+i) = xoutput(i,ii)
-enddo
-enddo
-
-do ii = 2, NS-1
-xg1(ntot*(NS-2)+(ii-1))=LMoutput(ii) 
-fixLM(ii-1) = LMoutput(ii)
-enddo
-
-x1 = xg1
-
 do i = 1,n
 zc(i)= (i-0.5) * delta
 enddo
@@ -235,9 +221,39 @@ open(unit=10, file='out.out')
 
 ! Call solver 
 
+sumnormaini = 10000
+do while (sumnormaini.gt.error)
+   sumnormaini = 0.0
+
+
+ do NS_current = 2, NS-1 ! loop over all points
    iter = 0
-   print*, 'solve: Enter solver ', (NS-2)*(ntot+1), ' eqs'
-   call call_kinsol(x1, xg1, ier)
+   print*, 'solve: Enter solver for ', NS_current, 'with ',(ntot+1), ' eqs'
+   print*, 'LM for ', NS_current, ' is ', LMoutput(NS_current)
+    do i = 1, ntot
+     x1(i) = xoutput(i,NS_current)
+     xg1(i) = xoutput(i,NS_current)
+    enddo
+     x1(ntot+1)=LMoutput(NS_current)
+     xg1(ntot+1)=LMoutput(NS_current)
+
+     call call_kinsol(x1, xg1, ier)
+     sumnormaini = sumnormaini + normaini
+
+     print*, 'Initial norm for', NS_current, ' was ', normaini
+
+! save for next iter
+
+    do i = 1, ntot
+      xoutput(i,NS_current) = xg1(i) 
+    enddo
+      LMoutput(NS_current) = xg1(ntot+1)
+  
+    enddo ! NS_Current
+    print*, 'Loop complete, sum of initial norms was', sumnormaini
+enddo
+
+
 
 do ii = 1, NS-2
 do i=1,n
