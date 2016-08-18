@@ -28,7 +28,7 @@ use string
 use segregated
 implicit none
 
-
+integer fileunit, iter2
 real*8, external :: LINTERPOL
 real*8 xpos
 integer IERR
@@ -222,7 +222,9 @@ open(unit=10, file='out.out')
 ! Call solver 
 
 sumnormaini = 10000
+iter2 = 0
 do while (sumnormaini.gt.error)
+   iter2 = iter2+ 1
    sumnormaini = 0.0
 
 
@@ -243,11 +245,15 @@ do while (sumnormaini.gt.error)
      print*, 'Initial norm for', NS_current, ' was ', normaini
 
 ! save for next iter
+    fileunit = 700+iter2*10+NS_current
+    open(unit=fileunit)
 
     do i = 1, ntot
-      xoutput(i,NS_current) = xg1(i) 
+      write(fileunit,*)xg1(i)
+      if(norma.lt.normaini)xoutput(i,NS_current) = xg1(i) 
     enddo
-      LMoutput(NS_current) = xg1(ntot+1)
+      write(fileunit,*)xg1(ntot+1)
+      if(norma.lt.normaini)LMoutput(NS_current) = xg1(ntot+1)
   
     enddo ! NS_Current
     print*, 'Loop complete, sum of initial norms was', sumnormaini
