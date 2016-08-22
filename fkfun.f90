@@ -290,6 +290,7 @@ enddo
 norma=algo1
 print*, 'Outer Loop:', iter, algo1, algo2, norma
 !print*, LM0(1), arc0, arc(1)
+if(mod(iter,10).eq.0)write(10,*)iter, algo1, algo2, norma
 flush(10)
 
 !do i = 1, (NS-2)*(ntot+1)
