@@ -1,3 +1,11 @@
+module MPI
+include 'mpif.h' ! librerias MPI
+integer rank, size, ierr
+integer flagsolver
+integer, allocatable :: endx(:), startx(:)
+endmodule
+
+
 module string
 integer NS, NS0, FIX
 real*8, allocatable :: xfirst(:)

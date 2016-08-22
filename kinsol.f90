@@ -96,12 +96,14 @@ globalstrat = 0
 call fnvinits(3, neq, ier) ! fnvinits inits NVECTOR module
 if (ier .ne. 0) then       ! 3 for Kinsol, neq ecuantion number, ier error flag (0 is OK)
   print*, 'call_kinsol: SUNDIALS_ERROR: FNVINITS returned IER = ', ier
+  call MPI_FINALIZE(ierr)
   stop
 endif
 
 call fkinmalloc(iout, rout, ier)    ! Allocates memory and output additional information
 if (ier .ne. 0) then
    print*, 'call_kinsol: SUNDIALS_ERROR: FKINMALLOC returned IER = ', ier
+   call MPI_FINALIZE(ierr)
    stop
  endif
 
@@ -128,6 +130,7 @@ call fkinspgmr(maxl, maxlrst, ier) !  Scale Preconditioned GMRES solution of lin
 if (ier .ne. 0) then
   print*, 'call_kinsol: SUNDIALS_ERROR: FKINSPGMR returned IER = ', ier
   call fkinfree ! libera memoria
+  call MPI_FINALIZE(ierr)
   stop
 endif
 call fkinspilssetprec(1, ier) ! preconditiones
@@ -170,7 +173,7 @@ end
 subroutine call_fkfun(x1_old)
 use brush
 use string
-use string
+use MPI
 implicit none
 integer i
 integer neqs
@@ -186,6 +189,7 @@ do i = 1,neqs
   x1(i) = x1_old(i)
 enddo
 
+CALL MPI_BCAST(x1, neqs , MPI_DOUBLE_PRECISION,0, MPI_COMM_WORLD,ierr)
 call fkfun(x1,f, ier) ! todavia no hay solucion => fkfun 
 end
 

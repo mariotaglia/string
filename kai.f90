@@ -11,7 +11,7 @@ subroutine kai
 use kai
 use layer
 use brush
-
+use MPI
 implicit none
 integer seed
 real*8 xmin,xmax,ymin,ymax,zmin,zmax
@@ -27,8 +27,6 @@ integer iR, ix,iy,iz, itheta
 integer j
 real*8 radio
 real*8 cutoff
-integer rank
-rank = 0
 
 cutoff = (float(Xulimit)+0.5)*delta
 

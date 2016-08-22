@@ -3,6 +3,7 @@ subroutine creador
 use brush
 use layer
 use longs
+use MPI
 implicit none
 integer flag
 integer ncha,j,k
@@ -16,7 +17,7 @@ integer, external :: imap, mapx, mapy
 ! CHAIN GENERATION
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-print*, 'Calling RIS chain generator'
+if(rank.eq.0)print*, 'Calling RIS chain generator'
 in1n = 0
 
 call initcha              ! init matrices for chain generation

@@ -7,7 +7,7 @@ use bulk
 use longs
 use kai
 use string
-
+use MPI
 implicit none
 integer*4 ier2
 real*8 x((ntot+1)*(NS-2)),f((ntot+1)*(NS-2))
@@ -31,6 +31,13 @@ integer iter2
 real*8 norma2
 real*8 error2
 integer xx
+! Jefe
+
+if(rank.eq.0) then ! llama a subordinados y pasa vector x
+   flagsolver = 1
+   CALL MPI_BCAST(flagsolver, 1, MPI_INTEGER, 0, MPI_COMM_WORLD,err)
+   CALL MPI_BCAST(x, (ntot+1)*(NS-2) , MPI_DOUBLE_PRECISION,0, MPI_COMM_WORLD,err)
+endif
 
 error2 = 1.0d-5
 shift = 1.0
@@ -101,13 +108,14 @@ enddo
 q(:,2:NS-1)=0.0d0                   ! init q to zero
 avpol(:,2:NS-1) = 0.0d0
 
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! CALCULATE FIRST AND LAST
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+!if(iter.ne.-1) then
 if(iter.eq.0) then
 
+pro = 0.0
 q=0.0d0                   ! init q to zero
 avpol=0.0d0
 
@@ -119,7 +127,8 @@ do kk = 1, 2
 ii = fl(kk)
 jj = ii - 1 ! Lagrange multiplier index for ii
 
-do xx = 1, dimx 
+do xx = startx(rank+1), endx(rank+1) 
+
 avpol_tmp=0.0
 do i=1,newcuantas ! loop over cuantas
 
@@ -156,12 +165,20 @@ pro(:,xx,ii) = pro(:,xx,ii)/q(xx,ii)
 
 enddo ! xx
 
+!!! Put avpol together in rank 0
+
+avpol_tmp(:) = avpol(:,ii)
+call MPI_REDUCE(avpol_tmp(:), avpol(:,ii), ntot, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
+
+if(rank.eq.0) then
 do i = 1, ntot
 if(abs(xh(i,ii)+avpol(i,ii)-1.0).gt.error2) then
   print*, 'fkfun: extreme points are no minima of free energy, ii=',ii
   print*, i, ii, xh(i,ii)+avpol(i,ii)
-endif
+  stop
+endif ! rank
 enddo
+endif
 
 enddo ! kk
 
@@ -181,7 +198,7 @@ enddo
 
 jj = ii - 1 ! Lagrange multiplier index for ii
 
-do xx = 1, dimx
+do xx = startx(rank+1), endx(rank+1)
 avpol_tmp = 0.0
 do i=1,newcuantas ! loop over cuantas
 
@@ -215,7 +232,19 @@ enddo ! i
 avpol(:,ii) = avpol(:,ii) +avpol_tmp(:)/q(xx,ii)
 pro(:,xx,ii) = pro(:,xx,ii)/q(xx,ii)
 enddo ! xx
+
+
+avpol_tmp(:) = avpol(:,ii)
+
+call MPI_REDUCE(avpol_tmp(:), avpol(:,ii), ntot, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
+
 enddo ! ii
+
+
+iter=iter+1
+
+!!! Put avpol together in rank 0
+if(rank.eq.0) then
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Construction of arclenght vectors
@@ -249,8 +278,6 @@ else
 endif
 enddo
 
-iter=iter+1
-
 algo1 = 0.0
 do i = 1, (NS-2)*(ntot)
  algo1 = algo1 + f(i)**2
@@ -268,6 +295,9 @@ flush(10)
 !do i = 1, (NS-2)*(ntot+1)
 !print*, 'out', i, f(i)
 !enddo
+
+
+endif ! rank
 ier2 = 0
 return
 end

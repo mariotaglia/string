@@ -5,7 +5,10 @@ use longs
 use kai
 use string
 use partfunc
+use MPI
 
+allocate (startx(size))
+allocate (endx(size))
 allocate (LM(NS-2))
 allocate (pp((ntot+1)*(NS-2)))
 allocate (avpol(ntot, NS))
