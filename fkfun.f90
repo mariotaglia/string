@@ -190,20 +190,22 @@ endif ! iter
 
 do ii = 2, NS-1
 
+
 ! update xpot
 
-do j = 1, ntot
-xpot(j,ii) = xpot(j,ii)*exp(LM0(ii-1)*(xtotal(j,ii+1)-xtotal(j,ii-1)))
-enddo
+!do j = 1, ntot
+!xpot(j,ii) = xpot(j,ii)*exp(LM0(ii-1)*(xtotal(j,ii+1)-xtotal(j,ii-1)))
+!enddo
+
 
 jj = ii - 1 ! Lagrange multiplier index for ii
-
 do xx = startx(rank+1), endx(rank+1)
 avpol_tmp = 0.0
+
+
+! 1. calculate pro0
 do i=1,newcuantas ! loop over cuantas
-
 pro(i,xx,ii) = shift
-
     do j=1, long
      k = in1n(i,j)
      kx=mapx(k)+(xx-1)
@@ -214,7 +216,13 @@ pro(i,xx,ii) = shift
     enddo
 
     q(xx,ii)=q(xx,ii)+pro(i,xx,ii)
+enddo
+! 2. norm pro0
+pro(:,xx,ii)=pro(:,xx,ii)/q(xx,ii)
 
+! 3. 
+
+do i=1,newcuantas ! loop over cuantas
     do j=1,long
      k = in1n(i,j)
      kx=mapx(k)+(xx-1)
@@ -230,7 +238,7 @@ pro(i,xx,ii) = shift
 enddo ! i
 
 avpol(:,ii) = avpol(:,ii) +avpol_tmp(:)/q(xx,ii)
-pro(:,xx,ii) = pro(:,xx,ii)/q(xx,ii)
+!pro(:,xx,ii) = pro(:,xx,ii)/q(xx,ii)
 enddo ! xx
 
 
