@@ -35,7 +35,7 @@ integer IERR
 integer ix, iy
 integer, external :: imap, mapx, mapy
 
-
+integer xx
 integer ncha
 integer *4 ier ! Kinsol error flag
 real*8 pi ! pi
@@ -100,15 +100,26 @@ xsolbulk = 1.0
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 open(unit=20, file='first.dat')
+open(unit=30, file='firstp.dat')
 open(unit=21, file='last.dat')
+open(unit=31, file='lastp.dat')
 
 do i=1,n
 read(20,*)tempx,tempy,xfirst(i) 
 read(21,*)tempx,tempy,xlast(i) 
 enddo   
 
+do xx = 1, dimx
+do i=1,newcuantas
+read(30,*)pro(i,xx,1)
+read(31,*)pro(i,xx,NS)
+enddo
+enddo
+
 close(20)
+close(30)
 close(21)
+close(31)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Solver
@@ -226,7 +237,6 @@ iter2 = 0
 do while (sumnormaini.gt.error)
    iter2 = iter2+ 1
    sumnormaini = 0.0
-
 
  do NS_current = 2, NS-1 ! loop over all points
    iter = 0
