@@ -179,6 +179,16 @@ endif
 
 enddo ! kk
 
+do xx = 1, dimx
+do i = 1, cuantas
+write(30,*)pro(i,xx,1)
+write(31,*)pro(i,xx,NS)
+enddo
+enddo
+close(30)
+close(31)
+stop
+
 endif ! iter
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
