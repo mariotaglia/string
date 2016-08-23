@@ -31,6 +31,7 @@ integer iter2
 real*8 norma2
 real*8 error2
 integer xx
+real*8 A, B,C
 ! Jefe
 
 if(rank.eq.0) then ! llama a subordinados y pasa vector x
@@ -40,7 +41,7 @@ if(rank.eq.0) then ! llama a subordinados y pasa vector x
 endif
 
 error2 = 1.0d-5
-shift = 1.0
+shift = 1.0d-10
 n = ntot
 
 ! Retrive values from input vector
@@ -53,11 +54,7 @@ enddo
 enddo
 
 do ii = 1, NS-2
-if (FIX.ne.1) then   
    LM0(ii) = (x(ntot*(NS-2)+ii))
-else
-   LM0(ii) = fixLM(ii)
-endif
 enddo
 
 !LM0(ii) = exp(x(ntot*(NS-2)+ii))
@@ -175,7 +172,7 @@ do i = 1, ntot
 if(abs(xh(i,ii)+avpol(i,ii)-1.0).gt.error2) then
   print*, 'fkfun: extreme points are no minima of free energy, ii=',ii
   print*, i, ii, xh(i,ii)+avpol(i,ii)
-  stop
+!  stop
 endif ! rank
 enddo
 endif
@@ -204,6 +201,9 @@ avpol_tmp = 0.0
 
 
 ! 1. calculate pro0
+
+A = 0.0
+B = 0.0
 do i=1,newcuantas ! loop over cuantas
 pro(i,xx,ii) = shift
     do j=1, long
@@ -214,15 +214,15 @@ pro(i,xx,ii) = shift
      k = imap(kx,ky)
      pro(i,xx,ii)= pro(i,xx,ii) * xpot(k,ii)
     enddo
-
-    q(xx,ii)=q(xx,ii)+pro(i,xx,ii)
+A = A + pro(i,xx,ii)/(1.0-LM0(ii-1)*pro(i,xx,ii))
+B = B + pro(i,xx,ii)*pro(i,xx,ii-1)*LM0(ii-1)/(1.0-LM0(ii-1)*pro(i,xx,ii))
 enddo
-! 2. norm pro0
-pro(:,xx,ii)=pro(:,xx,ii)/q(xx,ii)
+q(xx,ii) = A/(1.0+B) ! see notes
 
-! 3. 
-
+C = 0.0
 do i=1,newcuantas ! loop over cuantas
+pro(i,xx,ii) = (1.0/q(xx,ii) - LM0(ii-1)*pro(i,xx,ii-1))/(1.0/pro(i,xx,ii)-LM0(ii-1))
+C = C + pro(i,xx,ii)
     do j=1,long
      k = in1n(i,j)
      kx=mapx(k)+(xx-1)
@@ -234,20 +234,14 @@ do i=1,newcuantas ! loop over cuantas
      k = imap(kx,ky)
      avpol_tmp(k)=avpol_tmp(k)+pro(i,xx,ii)*sigma*vsol/delta*vpol ! opposing wall
     enddo
- 
 enddo ! i
-
-avpol(:,ii) = avpol(:,ii) +avpol_tmp(:)/q(xx,ii)
-!pro(:,xx,ii) = pro(:,xx,ii)/q(xx,ii)
+!print*, xx,ii,C
 enddo ! xx
-
-
-avpol_tmp(:) = avpol(:,ii)
 
 call MPI_REDUCE(avpol_tmp(:), avpol(:,ii), ntot, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
 
 enddo ! ii
-
+!print*, q(1,1),'!'
 
 iter=iter+1
 
@@ -261,8 +255,10 @@ if(rank.eq.0) then
 sumarc = 0.0
 do ii = 1, NS-1
 arc(ii) = 0.0
-do j = 1, ntot
-arc(ii) = arc(ii) + (avpol(j,ii+1)-avpol(j,ii))**2
+do xx = 1, dimx
+do j = 1, newcuantas
+arc(ii) = arc(ii) + (pro(j,xx,ii+1)-pro(j,xx,ii))**2
+enddo
 enddo
 sumarc = sumarc + arc(ii)
 enddo ! ii
@@ -275,6 +271,7 @@ arc0 = sumarc / (float(NS)-1.0) ! target arclenght
 do ii = 1, NS-2 ! Packing constraint
 do i=1,ntot
  f(i+(ii-1)*ntot)=xh(i,ii+1)+avpol(i,ii+1)-1.0d0
+! print*,i,ii+1,f(i+(ii-1)), avpol(i,ii+1),xh(i,ii+1)
 enddo
 enddo
 
@@ -295,10 +292,10 @@ do i = (NS-2)*(ntot)+1, (NS-2)*(ntot+1)
  algo2 = algo2 + f(i)**2
 enddo
 
-norma=algo1
-print*, 'Outer Loop:', iter, algo1, algo2, norma
+norma=algo1+algo2
+print*, 'Outer Loop:', iter, algo1, algo2, norma, sumarc, LM0(1)
 !print*, LM0(1), arc0, arc(1)
-if(mod(iter,10).eq.0)write(10,*)iter, algo1, algo2, norma
+if(mod(iter,10).eq.0)write(10,*)iter, algo1, algo2, sumarc, LM0(1)
 flush(10)
 
 !do i = 1, (NS-2)*(ntot+1)

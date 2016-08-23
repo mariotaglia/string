@@ -46,10 +46,10 @@ common /psize/ neq
 !   pp(:) = 1.0
 
 do i = 1, (NS-2)*(ntot+1)
-   pp(i) = 1.0  / (1.0+exp(1.0-udata(i)))
+   pp(i) = 1.0 ! / (1.0+exp(1.0-udata(i)))
 enddo
 do i = 1, (NS-2)*ntot+1,(NS-2)*(ntot+1)
-   pp(i) = 1.0  / (1.0+exp(1.0-udata(i)))
+   pp(i) = -1.0   / (1.0+exp(1.0-udata(i)))
 enddo
 
 
