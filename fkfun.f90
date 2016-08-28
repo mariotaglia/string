@@ -85,9 +85,9 @@ enddo
 enddo
 
 ii = NS_current ! add LM
-!do j = 1, ntot
-!xpot(j,ii) = xpot(j,ii)*exp(LM0(ii-1)*(xtotal(j,ii+1)-xtotal(j,ii-1)))
-!enddo
+do j = 1, ntot
+xpot(j,ii) = xpot(j,ii)*exp(LM0(ii-1)*(xtotal(j,ii+1)-xtotal(j,ii-1)))
+enddo
 
 jj = ii - 1 ! Lagrange multiplier index for ii
 
@@ -105,7 +105,7 @@ pro(i,xx,ii) = shift
      k = imap(kx,ky)
      pro(i,xx,ii)= pro(i,xx,ii) * xpot(k,ii)
     enddo
-     pro(i,xx,ii) = pro(i,xx,ii)*exp(LM0(ii-1)*(pro(i,xx,ii+1)-pro(i,xx,ii-1)))
+
     q(xx,ii)=q(xx,ii)+pro(i,xx,ii)
 
     do j=1,long
@@ -133,10 +133,8 @@ enddo ! xx
 arc2 = 0.0
 arc1 = 0.0 
 do j = 1, ntot
-do xx = 1, dimx
-arc1 = arc1 + (pro(j,xx,NS_current)-pro(j,xx,NS_current-1))**2
-arc2 = arc2 + (pro(j,xx,NS_current+1)-pro(j,xx,NS_current))**2
-enddo
+arc1 = arc1 + (avpol(j,NS_current)-avpol(j,NS_current-1))**2
+arc2 = arc2 + (avpol(j,NS_current+1)-avpol(j,NS_current))**2
 enddo
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
