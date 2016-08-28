@@ -5,13 +5,13 @@ use longs
 use kai
 use string
 use partfunc
-use segregated
+use MPI
 
+allocate (startx(size))
+allocate (endx(size))
 allocate (LM(NS-2))
-allocate (LMoutput(NS-2))
-allocate (pp(ntot+1))
+allocate (pp((ntot+1)*(NS-2)))
 allocate (avpol(ntot, NS))
-allocate (xoutput(ntot, NS))
 allocate (avsol(ntot, NS))
 allocate (in1n(cuantas,long))
 allocate (Xu(-Xulimit:Xulimit,-Xulimit:Xulimit))

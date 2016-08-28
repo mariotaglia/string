@@ -1,11 +1,10 @@
-module segregated
-real*8 normaini
-real*8 sumnormaini
-real*8, allocatable :: xoutput(:,:)
-real*8, allocatable :: LMoutput(:)
-real*8 norma
-integer NS_current
-end module
+module MPI
+include 'mpif.h' ! librerias MPI
+integer rank, size, ierr
+integer flagsolver
+integer, allocatable :: endx(:), startx(:)
+endmodule
+
 
 module string
 integer NS, NS0, FIX
@@ -34,6 +33,7 @@ real*8 error              ! error imposed accuaracy
 real*8 infile             ! inputfile control variable for reading input files  value 0,1
 CHARACTER nada
 
+real*8 norma
 integer cuantas          ! number of polymer configuration or  bound sequences
 integer newcuantas          ! number of polymer configuration or  bound sequences
 

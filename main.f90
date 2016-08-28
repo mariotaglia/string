@@ -6,13 +6,14 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 use seed1
+call initmpi
 call read ! read input from input.txt
 call allocation ! allocate arrays in memory
+call MPIdist ! distribute grafting points among processors
 call kai ! generate poor solvent
 seed = 435
 call creador
 call solve ! solve the system
-
 end
 
 subroutine solve
@@ -25,16 +26,14 @@ use seed1
 use longs
 use kai
 use string
-use segregated
+use MPI
 implicit none
 
-integer fileunit, iter2
+
 real*8, external :: LINTERPOL
 real*8 xpos
-integer IERR
 integer ix, iy
 integer, external :: imap, mapx, mapy
-
 
 integer ncha
 integer *4 ier ! Kinsol error flag
@@ -44,10 +43,12 @@ parameter (Na=6.02d23)
 integer cc,ccc
 real*8 vin(NS0), vout(NS-2)
 real*8 xinput(ntot,NS0)
+real*8 xoutput(ntot,NS)
 real*8 LMinput(NS0)
+real*8 LMoutput(NS)
 real*8 xxin(NS0), xxout(NS-2)
 integer*4 NI, NO
-real*8 x1(ntot+1),xg1(ntot+1)   ! density solvent iteration vector
+real*8 x1((ntot+1)*(NS-2)),xg1((ntot+1)*(NS-2))   ! density solvent iteration vector
 real*8 zc(ntot)           ! z-coordinate layer 
 integer mid
 integer n                 ! number of lattice sites
@@ -77,10 +78,16 @@ integer countfileuno     ! enumerates the outputfiles para una corrida
 
 integer readsalt          !integer to read salt concentrations
 
+
+integer tag, source
+parameter(tag = 0)
+integer err
+
+
 seed=435               ! seed for random number generator
 
-print*, 'Program Simple Brush'
-print*, 'GIT Version: ', _VERSION
+if(rank.eq.0)print*, 'Program Simple Brush'
+if(rank.eq.0)print*, 'GIT Version: ', _VERSION
 
 
 !     initializations of variables 
@@ -187,19 +194,32 @@ do j = 2, NS-1
 LMoutput(j)= vout(j-1)
 enddo
 
+do ii = 2, NS-1
+do i = 1, n
+xg1(ntot*(ii-2)+i) = xoutput(i,ii)
+enddo
+enddo
+
+do ii = 2, NS-1
+xg1(ntot*(NS-2)+(ii-1))=LMoutput(ii) 
+fixLM(ii-1) = LMoutput(ii)
+enddo
+
+x1 = xg1
+
 do i = 1,n
 zc(i)= (i-0.5) * delta
 enddo
 
 do i = 1, n
-print*, i, xinput(i,:)
+!if(rank.eq.0)print*, i, xinput(i,:)
 enddo
 
 do i = 1, n
-print*, i, xoutput(i,:)
+!if(rank.eq.0)print*, i, xoutput(i,:)
 enddo
-print*, LMinput
-print*, LMoutput
+!if(rank.eq.0)print*, LMinput
+!if(rank.eq.0)print*, LMoutput
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     computation starts
@@ -220,45 +240,24 @@ iter=0                    ! iteration counter
 open(unit=10, file='out.out')
 
 ! Call solver 
-
-sumnormaini = 10000
-iter2 = 0
-do while (sumnormaini.gt.error)
-   iter2 = iter2+ 1
-   sumnormaini = 0.0
-
-
- do NS_current = 2, NS-1 ! loop over all points
+if(rank.eq.0) then 
    iter = 0
-   print*, 'solve: Enter solver for ', NS_current, 'with ',(ntot+1), ' eqs'
-   print*, 'LM for ', NS_current, ' is ', LMoutput(NS_current)
-    do i = 1, ntot
-     x1(i) = xoutput(i,NS_current)
-     xg1(i) = xoutput(i,NS_current)
-    enddo
-     x1(ntot+1)=LMoutput(NS_current)
-     xg1(ntot+1)=LMoutput(NS_current)
-
-     call call_kinsol(x1, xg1, ier)
-     sumnormaini = sumnormaini + normaini
-
-     print*, 'Initial norm for', NS_current, ' was ', normaini
-
-! save for next iter
-    fileunit = 700+iter2*10+NS_current
-    open(unit=fileunit)
-
-    do i = 1, ntot
-      write(fileunit,*)xg1(i)
-      if(norma.lt.normaini)xoutput(i,NS_current) = xg1(i) 
-    enddo
-      write(fileunit,*)xg1(ntot+1)
-      if(norma.lt.normaini)LMoutput(NS_current) = xg1(ntot+1)
-  
-    enddo ! NS_Current
-    print*, 'Loop complete, sum of initial norms was', sumnormaini
-enddo
-
+   if(rank.eq.0)print*, 'solve: Enter solver ', (NS-2)*(ntot+1), ' eqs'
+   call call_kinsol(x1, xg1, ier)
+   flagsolver = 0
+   CALL MPI_BCAST(flagsolver, 1, MPI_INTEGER, 0, MPI_COMM_WORLD,err)
+endif
+if(rank.ne.0) then
+  do
+     flagsolver = 0
+     source = 0
+     CALL MPI_BCAST(flagsolver, 1, MPI_INTEGER, 0, MPI_COMM_WORLD,err)
+     if(flagsolver.eq.1) then
+        call call_fkfun(x1) ! todavia no hay solucion => fkfun 
+     endif ! flagsolver
+     if(flagsolver.eq.0) exit ! Detiene el programa para este nodo
+   enddo
+endif
 
 
 do ii = 1, NS-2
@@ -267,7 +266,7 @@ avsol(i,ii+1)=xg1(i+(ii-1)*ntot)  ! solvent density=volume fraction
 enddo
 enddo
 do ii =1, NS-2
-print*, 'LM',ii, xg1(ntot*(NS-2)+ii)
+if(rank.eq.0)print*, 'LM',ii, xg1(ntot*(NS-2)+ii)
 if(FIX.ne.1) then
   LM(ii) = xg1(ntot*(NS-2)+ii)
 else
@@ -338,8 +337,27 @@ enddo ! ii
 
 enddo
 enddo
-
+call MPI_FINALIZE(ierr) ! finaliza MPI
 stop
 
 end
+
+
+subroutine MPIdist
+use MPI
+use brush
+implicit none
+integer ppc
+integer i
+ppc = int(dimx/size)
+if(rank.eq.0)print*,'ppc', ppc
+do i = 1, size
+startx(i) = 1 + ppc*(i-1)
+endx(i) = startx(i)+ppc-1
+enddo
+endx(size) = dimx
+do i = 1, size
+if(rank.eq.0)print*,'Proc', i,'start', startx(i), 'end',endx(i)
+enddo
+end 
 

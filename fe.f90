@@ -5,6 +5,7 @@ use volume
 use bulk
 use kai
 use partfunc
+use MPI
 implicit none
 
 integer cc
@@ -16,12 +17,23 @@ real*8 sumpi, sumrho
 real*8 xtotal(ntot)
 real*8 mupol
 integer, external :: imap, mapx, mapy
+real*8 q_tosend(dimx)
+real*8 pro_tosend(cuantas,dimx)
 
 xtotal = 0.0
 do i = 1,ntot
 xtotal(i) = 1.0-avsol(i, cc)
 enddo
 
+q_tosend(:) = q(:,cc)
+pro_tosend(:,:) = pro(:,:,cc)
+
+! recover all qs
+call MPI_REDUCE(q_tosend(:), q(:,cc), dimx, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, ierr)
+! recover pro()
+call MPI_REDUCE(pro_tosend(:,:), pro(:,:,cc), dimx*cuantas, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, ierr)
+
+if(rank.eq.0) then 
 
 F_tot = 0.0
 F_tot2 = 0.0
@@ -141,6 +153,8 @@ close(20)
 open(unit=20, file='F_conf.dat', access='append')
 write(20,*)cc,F_conf
 close(20)
+
+endif ! rank
 
 end subroutine
 
