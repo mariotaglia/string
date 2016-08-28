@@ -30,7 +30,7 @@ read(8,*),nsigma
 read(8,*), (sigmas(i), i=1, nsigma)
 
 READ(8,*),nada
-read(8,*),error
+read(8,*),error, STEP
 
 READ(8,*),nada
 read(8,*),infile

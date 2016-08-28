@@ -44,8 +44,6 @@ integer cc,ccc
 real*8 vin(NS0), vout(NS-2)
 real*8 xinput(ntot,NS0)
 real*8 xoutput(ntot,NS)
-real*8 LMinput(NS0)
-real*8 LMoutput(NS)
 real*8 xxin(NS0), xxout(NS-2)
 integer*4 NI, NO
 real*8 x1((ntot+1)*(NS-2)),xg1((ntot+1)*(NS-2))   ! density solvent iteration vector
@@ -106,16 +104,18 @@ xsolbulk = 1.0
 ! read first and last
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-open(unit=20, file='first.dat')
-open(unit=21, file='last.dat')
+open(unit=30, file='firstp.dat')
+open(unit=31, file='lastp.dat')
 
-do i=1,n
-read(20,*)tempx,tempy,xfirst(i) 
-read(21,*)tempx,tempy,xlast(i) 
-enddo   
+do xx = 1, dimx
+do i=1,newcuantas
+read(30,*)pro(i,xx,1)
+read(31,*)pro(i,xx,NS)
+enddo
+enddo
 
-close(20)
 close(21)
+close(31)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Solver
@@ -125,27 +125,6 @@ close(21)
 !  make initial guess by interpolation
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-do i = 1, n
-xinput(i,1) = xfirst(i)
-xinput(i,NS0) = xlast(i)
-enddo
-
-LMinput(1) = 0.0
-LMinput(NS0) = 0.0
-
-! read xinput
-do ii = 2, NS0-1
-do i = 1, n
-read(800+ii-1,*)xinput(i,ii)
-enddo
-read(800+ii-1,*)LMinput(ii)
-enddo
-
-xoutput(:,1) = xinput(:,1)
-xoutput(:,NS) = xinput(:,NS0)
-LMoutput(1) = LMinput(1)
-LMoutput(NS) = LMinput(NS0)
-
 do i = 1, NS0
 xxin(i) = float(i-1)/float(NS0-1)
 enddo
@@ -153,73 +132,31 @@ do i = 2, NS-1
 xxout(i-1) = float(i-1)/float(NS-1)
 enddo
 
+
 NI = NS0
 NO = NS-2
 
-do i = 1, n
- do j = 1,NS0
- vin(j) = xinput(i,j)
- enddo
-
-if(NI.ne.2) then 
-
+do i = 1, newcuantas
+do xx = 1, dimx
+ vin(1) = pro(i,xx,1)
+ vin(2) = pro(i,xx,NS)
 do j = 1,NS-2
   xpos = xxout(j)
   vout(j) = LINTERPOL (NI, xxin, vin, xpos , IERR)
-!  call pwl_approx_1d (NI, xxin, vin, NO, xxout, vout)
 enddo
 
-else
-  vout(1) = (vin(2)+vin(1))/2.0
-endif
-
- do j = 2, NS-1
- xoutput(i,j) = vout(j-1)
- enddo
-enddo
-
-NI = NS0
-NO = NS-2
-if(NI.ne.2) then 
-do j = 1,NS-2
-  xpos = xxout(j)
-  vout(j) = LINTERPOL (NI, xxin,LMinput, xpos , IERR)*NS0/NS
-!  call pwl_approx_1d (NI, xxin, vin, NO, xxout, vout)
-enddo
-
-else
-  vout(1) = (LMinput(2)+LMinput(1))/2.0
-endif
 do j = 2, NS-1
-LMoutput(j)= vout(j-1)
+ pro(i,xx,j) = vout(j-1)
 enddo
 
-do ii = 2, NS-1
-do i = 1, n
-xg1(ntot*(ii-2)+i) = xoutput(i,ii)
 enddo
 enddo
 
-do ii = 2, NS-1
-xg1(ntot*(NS-2)+(ii-1))=LMoutput(ii) 
-fixLM(ii-1) = LMoutput(ii)
-enddo
-
-x1 = xg1
+!!!!!!!!!!!!!! Auxiliary fields... !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 do i = 1,n
 zc(i)= (i-0.5) * delta
 enddo
-
-do i = 1, n
-!if(rank.eq.0)print*, i, xinput(i,:)
-enddo
-
-do i = 1, n
-!if(rank.eq.0)print*, i, xoutput(i,:)
-enddo
-!if(rank.eq.0)print*, LMinput
-!if(rank.eq.0)print*, LMoutput
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     computation starts
@@ -240,51 +177,10 @@ iter=0                    ! iteration counter
 open(unit=10, file='out.out')
 
 ! Call solver 
-if(rank.eq.0) then 
-   iter = 0
-   if(rank.eq.0)print*, 'solve: Enter solver ', (NS-2)*(ntot+1), ' eqs'
-   call call_kinsol(x1, xg1, ier)
-   flagsolver = 0
-   CALL MPI_BCAST(flagsolver, 1, MPI_INTEGER, 0, MPI_COMM_WORLD,err)
-endif
-if(rank.ne.0) then
-  do
-     flagsolver = 0
-     source = 0
-     CALL MPI_BCAST(flagsolver, 1, MPI_INTEGER, 0, MPI_COMM_WORLD,err)
-     if(flagsolver.eq.1) then
-        call call_fkfun(x1) ! todavia no hay solucion => fkfun 
-     endif ! flagsolver
-     if(flagsolver.eq.0) exit ! Detiene el programa para este nodo
-   enddo
-endif
 
+call integration
 
-do ii = 1, NS-2
-do i=1,n
-avsol(i,ii+1)=xg1(i+(ii-1)*ntot)  ! solvent density=volume fraction
-enddo
-enddo
-do ii =1, NS-2
-if(rank.eq.0)print*, 'LM',ii, xg1(ntot*(NS-2)+ii)
-if(FIX.ne.1) then
-  LM(ii) = xg1(ntot*(NS-2)+ii)
-else
-  LM(ii) = fixLM(ii)
-endif
-enddo
-
-do ii=2,NS-1
-write(1010,*)ii,LM(ii-1)
-enddo
-
-do ii = 1, NS-2
-do i = 1, ntot
-write(900+ii,*)avsol(i,ii+1)
-enddo
-write(900+ii,*)LM(ii)
-enddo
-
+! OK
 
 avsol(:,1)=xfirst(:)
 avsol(:,NS)=xlast(:)
