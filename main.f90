@@ -107,10 +107,10 @@ xsolbulk = 1.0
 open(unit=30, file='firstp.dat')
 open(unit=31, file='lastp.dat')
 
-do xx = 1, dimx
+do ix = 1, dimx
 do i=1,newcuantas
-read(30,*)pro(i,xx,1)
-read(31,*)pro(i,xx,NS)
+read(30,*)pro(i,ix,1)
+read(31,*)pro(i,ix,NS)
 enddo
 enddo
 
@@ -125,6 +125,8 @@ close(31)
 !  make initial guess by interpolation
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+if(rank.eq.0)print*, 'Interpolation'
+
 do i = 1, NS0
 xxin(i) = float(i-1)/float(NS0-1)
 enddo
@@ -137,16 +139,16 @@ NI = NS0
 NO = NS-2
 
 do i = 1, newcuantas
-do xx = 1, dimx
- vin(1) = pro(i,xx,1)
- vin(2) = pro(i,xx,NS)
+do ix = 1, dimx
+ vin(1) = pro(i,ix,1)
+ vin(2) = pro(i,ix,NS)
 do j = 1,NS-2
   xpos = xxout(j)
   vout(j) = LINTERPOL (NI, xxin, vin, xpos , IERR)
 enddo
 
 do j = 2, NS-1
- pro(i,xx,j) = vout(j-1)
+ pro(i,ix,j) = vout(j-1)
 enddo
 
 enddo
@@ -178,12 +180,23 @@ open(unit=10, file='out.out')
 
 ! Call solver 
 
+!do i = 1, newcuantas
+!print*, i, pro(i,1,1),pro(i,1,3),pro(i,1,5)
+!enddo
+
+! OJO
+!do ii = 1, NS
+!print*, ii, pro(1,1,ii)
+!enddo 
+!do ii = 1, NS
+!print*, ii, pro(10,1,ii)
+!enddo 
+!stop
+
+
 call integration
 
 ! OK
-
-avsol(:,1)=xfirst(:)
-avsol(:,NS)=xlast(:)
 
 do ii = 1, NS
 

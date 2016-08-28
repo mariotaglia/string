@@ -1,4 +1,4 @@
-subroutine integrate
+subroutine integration
 use brush
 use partfunc
 use layer
@@ -8,7 +8,10 @@ use longs
 use kai
 use string
 use MPI
+
+
 implicit none
+real*8, external :: LINTERPOL
 integer*4 ier2
 real*8 xh(ntot,NS)
 real*8 xpot(ntot, 2:NS-1)
@@ -29,10 +32,12 @@ real*8 arc(NS), sumarc(NS), arc_tmp(NS)
 real*8 pro0(cuantas,dimx,NS)
 real*8 pro_old(cuantas,dimx,NS)
 integer iter2
-real*8 norma2
+real*8 norma_tmp
 real*8 error2
 integer xx
-
+real*8 xxout(2:NS-1)
+real*8 vin(1:NS)
+real*8 xpos
 
 do i = 2, NS-1
 xxout(i) = float(i-1)/float(NS-1)
@@ -40,14 +45,15 @@ enddo
 
 norma = 1.0
 
-do while (norma.lt.error)
+do while (norma.gt.error)
 
 iter=iter+1
 pro_old = pro
 
+!print*,'!1!'
 ! 1. Calculate avpol from the probabilities
 do ii = 2, NS-1 ! loop over nodes
-
+avpol_tmp = 0.0
 do xx = startx(rank+1), endx(rank+1)
 do i=1,newcuantas ! loop over cuantas
     do j=1,long
@@ -71,6 +77,15 @@ call MPI_BCAST(avpol2, ntot*(NS-2), MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, err
 
 xh2 = 1.0-avpol2
 
+!OJO
+!do ii = 2, NS-1
+!do i = 1, ntot
+!print*, i, ii, avpol2(i,ii), xh2(i,ii)
+!enddo
+!enddo
+!stop
+
+
 ! 2. Calculation of xpot
 do ii = 2, NS-1
 do i = 1, ntot
@@ -86,10 +101,20 @@ do jx = -Xulimit, Xulimit
     k = imap(kx,ky)
     xpot(i,ii) = xpot(i,ii)*dexp(Xu(jx,jy)*avpol2(k,ii)*st/(vpol*vsol))
   endif
-  enddo
- enddo
-enddo
-enddo
+  enddo !jx
+ enddo ! jy
+enddo ! i
+enddo ! ii
+
+!OJO
+!do ii = 2, NS-1
+!do i = 1, ntot
+!print*, i, ii, xpot(i,ii)
+!enddo
+!enddo
+!stop
+
+
 
 ! 3. Calculation of pro0
 
@@ -106,13 +131,19 @@ pro0(i,xx,ii) = shift
      kx= mod(kx-1+50*dimx, dimx) + 1
      ky=mapy(k)
      k = imap(kx,ky)
-     pro(i,xx,ii)= pro(i,xx,ii) * xpot(k,ii)
+     pro0(i,xx,ii)= pro(i,xx,ii) * xpot(k,ii)
     enddo
 
     q(xx,ii)=q(xx,ii)+pro0(i,xx,ii)
 enddo ! i
 pro0(:,xx,ii) = pro0(:,xx,ii)/q(xx,ii)
 enddo ! xx
+enddo ! ii
+
+!do i = 1, newcuantas
+!print*, i, pro0(i,1,2),pro0(i,1,3),pro0(i,1,4)
+!enddo
+!stop
 
 ! 4. Evolve system
 ! dP/dt = k(P0-P)
@@ -120,11 +151,15 @@ enddo ! xx
 do ii = 2, NS-1 ! loop over beads
 do xx = startx(rank+1), endx(rank+1)
 do i=1,newcuantas ! loop over cuantas
-pro(i,xx,ii)=STEP*(pro0(i,xx,ii)-pro(i,xx,ii)) ! normalization is conserved
+pro(i,xx,ii)=STEP*(pro0(i,xx,ii)-pro(i,xx,ii)) + pro(i,xx,ii) ! normalization is conserved
 enddo
 enddo
 enddo
 
+!do i = 1, newcuantas
+!print*, i, pro(i,1,1),pro(i,1,2),pro(i,1,3),pro(i,1,4),pro(i,1,5)
+!enddo
+!stop
 
 ! 5. Calculate distance between beads
 arc = 0.0
@@ -139,12 +174,13 @@ enddo
 enddo
 enddo
 
-arc_temp = arc
+arc_tmp = arc
 
 call MPI_REDUCE(arc_tmp, arc, NS-1, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
 call MPI_BCAST(arc, NS-1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, err)
 
 sumarc = 0.0
+
 ! calculate sum of arc
 do ii = 2, NS
 do jj = 2,ii
@@ -177,9 +213,13 @@ do i = 1, newcuantas
 q(xx,ii) = q(xx,ii) + pro(i,xx,ii)
 enddo
 pro(:,xx,ii) = pro(:,xx,ii)/q(xx,ii)
-pro(:,xx,ii) = pro(:,xx,ii)/q(xx,ii)
 enddo ! xx
 enddo ! ii
+
+!do i = 1, newcuantas
+!print*,i, pro(i,1,1),pro(i,1,2),pro(i,1,3),pro(i,1,4),pro(i,1,5)
+!enddo
+
 
 ! calculate displacement
 
@@ -192,13 +232,21 @@ enddo
 enddo ! xx
 enddo ! ii
 
+!print*, norma_tmp
 
 call MPI_REDUCE(norma_tmp, norma, 1, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
 call MPI_BCAST(norma, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, err)
 
-if(rank.eq.0) print*, iter, norma
+!print*, norma
 
+norma = norma/STEP
+if(rank.eq.0) print*, iter, norma
+!stop
 enddo ! norma
+
+avpol(:,2:NS) = avpol2(:,2:NS)
+avsol(:,2:NS) = xh2(:,2:NS)
+
 
 end
 
