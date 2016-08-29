@@ -14,7 +14,7 @@ implicit none
 real*8, external :: LINTERPOL
 integer*4 ier2
 real*8 xh(ntot,NS)
-real*8 xpot(ntot, 2:NS-1)
+real*8 xpot(ntot, NS)
 integer i,j,k1,k2,ii,kk, jj,iz       ! dummy indices
 integer err
 integer n
@@ -25,7 +25,6 @@ integer ix,iy,jx,jy,kx,ky,k
 integer, external :: imap, mapx, mapy
 real*8 avpol_tmp(ntot)
 real*8 avpol2(ntot,2:NS-1)
-real*8 xh2(ntot,2:NS-1)
 real*8 aa
 integer fl(2)
 real*8 arc(NS), sumarc(NS), arc_tmp(NS)
@@ -45,6 +44,7 @@ xxout(i) = float(i-1)/float(NS-1)
 enddo
 
 norma = 1.0
+q = 0.0
 
 do while (norma.gt.error)
 
@@ -93,12 +93,12 @@ enddo ! ii
 
 if(iter.eq.1) then
   call MPI_BCAST(avpol, ntot*NS, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, err) ! broadcast to everyone
-  if((ii.gt.1).and.(ii.lt.NS))avpol2(:,2:NS) = avpol(:,2:NS)
 else
   call MPI_BCAST(avpol2, ntot*(NS-2), MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, err) ! broadcast to everyone
+  avpol(:,2:NS-1) = avpol2(:,2:NS-1)
 endif
 
-xh2 = 1.0-avpol2
+xh = 1.0-avpol
 
 !OJO
 !do ii = 2, NS-1
@@ -110,9 +110,9 @@ xh2 = 1.0-avpol2
 
 
 ! 2. Calculation of xpot
-do ii = 2, NS-1
+do ii = fs, ls
 do i = 1, ntot
-xpot(i,ii) = xh2(i,ii)**(vpol)
+xpot(i,ii) = xh(i,ii)**(vpol)
  ix=mapx(i)
  iy=mapy(i)
 do jx = -Xulimit, Xulimit 
@@ -122,7 +122,7 @@ do jx = -Xulimit, Xulimit
   ky = iy+jy
   if((ky.le.dimy).and.(ky.ge.1)) then
     k = imap(kx,ky)
-    xpot(i,ii) = xpot(i,ii)*dexp(Xu(jx,jy)*avpol2(k,ii)*st/(vpol*vsol))
+    xpot(i,ii) = xpot(i,ii)*dexp(Xu(jx,jy)*avpol(k,ii)*st/(vpol*vsol))
   endif
   enddo !jx
  enddo ! jy
@@ -141,12 +141,12 @@ enddo ! ii
 
 ! 3. Calculation of pro0
 
-q=0.0d0                   ! init q to zero
+q(:,2:NS-1)=0.0d0                   ! init q to zero
 
-do ii = 2, NS-1 ! loop over beads
+do ii = fs, ls ! loop over beads
 do xx = startx(rank+1), endx(rank+1)
 do i=1,newcuantas ! loop over cuantas
-pro0(i,xx,ii) = shift
+pro0(i,xx,ii) = 1.0
 
     do j=1, long
      k = in1n(i,j)
@@ -229,15 +229,16 @@ enddo
 
 ! 7. Renorm q 
 
-q = 0.0
-do ii = 2, NS-1
-do xx = startx(rank+1), endx(rank+1)
-do i = 1, newcuantas
-q(xx,ii) = q(xx,ii) + pro(i,xx,ii)
-enddo
-pro(:,xx,ii) = pro(:,xx,ii)/q(xx,ii)
-enddo ! xx
-enddo ! ii
+!q = 0.0
+!do ii = 2, NS-1
+!do xx = startx(rank+1), endx(rank+1)
+!do i = 1, newcuantas
+!q(xx,ii) = q(xx,ii) + pro(i,xx,ii)
+!enddo
+!pro(:,xx,ii) = pro(:,xx,ii)/q(xx,ii)
+!enddo ! xx
+!print*,'q', ii, q(1,ii)
+!enddo ! ii
 
 !do i = 1, newcuantas
 !print*,i, pro(i,1,1),pro(i,1,2),pro(i,1,3),pro(i,1,4),pro(i,1,5)
@@ -267,9 +268,8 @@ if(rank.eq.0) print*, iter, norma
 !stop
 enddo ! norma
 
-avpol(:,2:NS) = avpol2(:,2:NS)
-avsol(:,2:NS) = xh2(:,2:NS)
+!print*, q
 
-
+avsol = xh
 end
 

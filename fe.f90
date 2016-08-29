@@ -22,7 +22,7 @@ real*8 pro_tosend(cuantas,dimx)
 
 xtotal = 0.0
 do i = 1,ntot
-xtotal(i) = 1.0-avsol(i, cc)
+xtotal(i) = avpol(i, cc)
 enddo
 
 q_tosend(:) = q(:,cc)
@@ -118,8 +118,9 @@ sumrho = (delta/vsol)*sumrho
 
 F_tot2 = 0.0
 do ii = 1, dimx
-F_tot2 = F_tot2 - 2.0*sigma*log(q(ii,cc)/shift) 
+F_tot2 = F_tot2 - 2.0*sigma*log(q(ii,cc)) 
 enddo
+
 
 F_tot2 = F_tot2 + sumpi + sumrho -F_vdW  ! It is 2.0*sigma because we have brush on both walls
 
@@ -127,7 +128,7 @@ print*, 'fe: Free energy 2:', F_tot2,cc
 
 ! Calcula mupol
 
-mupol = -log(q(1,cc)/shift)
+mupol = -log(q(1,cc))
  
 
 open(unit=20, file='F_tot.dat', access='append')
