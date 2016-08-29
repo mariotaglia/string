@@ -264,6 +264,9 @@ call MPI_BCAST(norma, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, err)
 
 norma = norma/STEP
 if(rank.eq.0) print*, iter, norma
+if(mod(iter,100).eq.0)write(10,*)iter, norma
+flush(10)
+
 !stop
 enddo ! norma
 
