@@ -160,7 +160,7 @@ pro0(i,xx,ii) = 1.0
 
     q(xx,ii)=q(xx,ii)+pro0(i,xx,ii)
 enddo ! i
-!pro0(:,xx,ii) = pro0(:,xx,ii)/q(xx,ii)
+pro0(:,xx,ii) = pro0(:,xx,ii)/q(xx,ii)
 enddo ! xx
 !if(ii.eq.1) then 
 !  print*, q(1,ii)
@@ -181,6 +181,7 @@ do ii = 2, NS-1 ! loop over beads
 do xx = startx(rank+1), endx(rank+1)
 do i=1,newcuantas ! loop over cuantas
 pro(i,xx,ii)=STEP*(pro0(i,xx,ii)-pro(i,xx,ii)) + pro(i,xx,ii) ! normalization is conserved
+!print*, i,xx,ii, pro0(i,xx,ii),pro(i,xx,ii)
 enddo
 enddo
 enddo
@@ -218,6 +219,9 @@ enddo
 enddo
 
 sumarc = sumarc/sumarc(NS)
+
+!print*, sumarc
+
 !6. Redistribute prob
 
 do xx = startx(rank+1), endx(rank+1)
