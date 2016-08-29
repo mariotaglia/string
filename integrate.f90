@@ -38,6 +38,7 @@ integer xx
 real*8 xxout(2:NS-1)
 real*8 vin(1:NS)
 real*8 xpos
+integer fs, ls
 
 do i = 2, NS-1
 xxout(i) = float(i-1)/float(NS-1)
@@ -51,8 +52,20 @@ iter=iter+1
 pro_old = pro
 
 !print*,'!1!'
+
 ! 1. Calculate avpol from the probabilities
-do ii = 2, NS-1 ! loop over nodes
+
+
+if(iter.eq.1) then
+ fs = 1
+ ls = NS ! calculate avpol for extremes,  only for first iter
+else
+ fs = 2
+ ls = NS-1
+endif
+
+
+do ii = fs, ls ! loop over nodes
 avpol_tmp = 0.0
 do xx = startx(rank+1), endx(rank+1)
 do i=1,newcuantas ! loop over cuantas
@@ -70,10 +83,20 @@ do i=1,newcuantas ! loop over cuantas
 enddo ! i
 enddo ! xx
 
-call MPI_REDUCE(avpol_tmp(:), avpol2(:,ii), ntot, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
+if(iter.eq.1) then
+  call MPI_REDUCE(avpol_tmp(:), avpol(:,ii), ntot, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
+  if((ii.gt.1).and.(ii.lt.NS))avpol2(:,ii) = avpol(:,ii)
+else
+  call MPI_REDUCE(avpol_tmp(:), avpol2(:,ii), ntot, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
+endif
 enddo ! ii
 
-call MPI_BCAST(avpol2, ntot*(NS-2), MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, err) ! broadcast to everyone
+if(iter.eq.1) then
+  call MPI_BCAST(avpol, ntot*NS, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, err) ! broadcast to everyone
+  if((ii.gt.1).and.(ii.lt.NS))avpol2(:,2:NS) = avpol(:,2:NS)
+else
+  call MPI_BCAST(avpol2, ntot*(NS-2), MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, err) ! broadcast to everyone
+endif
 
 xh2 = 1.0-avpol2
 
