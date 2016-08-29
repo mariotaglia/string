@@ -212,7 +212,7 @@ enddo
 ! save probs
 do ix = 1, dimx
 do i=1,newcuantas
-write(340,*)pro(i,ix)
+write(340,*)pro(i,ix)/q(ix)
 enddo
 enddo
 
