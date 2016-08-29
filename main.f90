@@ -58,6 +58,7 @@ real*8 sumpi,sumrho,sumrhopol, sumrho2, sumrho2mol !suma de la fraccion de polim
 ! single layer files
 character*18 sysfilename      ! contains value of free energy, input parameter etc
 character*26 denssolfilename  ! contains the denisty of the solvent
+character*26 probfilename  ! contains the denisty of the solvent
 character*28 denspolfilename
 
 integer countfile         ! enumerates the outputfiles 
@@ -192,10 +193,12 @@ enddo
 write(sysfilename,'(A7,BZ,I3.3,A1,I3.3,A4)')'system.', countfileuno,'.',countfile,'.dat'
 write(denspolfilename,'(A15,BZ,I3.3,A1,I3.3,A4)')'densitypolymer.',countfileuno,'.',countfile,'.dat'
 write(denssolfilename,'(A15,BZ,I3.3,A1,I3.3,A4)')'densitysolvent.', countfileuno,'.',countfile,'.dat'
+write(probfilename,'(A15,BZ,I3.3,A1,I3.3,A4)')'chainsprobabil.', countfileuno,'.',countfile,'.dat'
 
 open(unit=310,file=sysfilename)
 open(unit=321,file=denspolfilename)
 open(unit=330,file=denssolfilename)
+open(unit=340,file=probfilename)
 
 do i=1,n
 ix = mapx(i)
@@ -203,6 +206,14 @@ iy = mapy(i)
 
 write(321,*)ix,iy,avpol(i)
 write(330,*)ix,iy,avsol(i)
+enddo
+
+
+! save probs
+do ix = 1, dimx
+do i=1,newcuantas
+write(340,*)pro(i,ix)
+enddo
 enddo
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -225,6 +236,7 @@ write(310,*)'iterations  = ',iter
 close(310)
 CLOSE(321)
 close(330)
+close(340)
 
 call free_energy
 
