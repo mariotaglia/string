@@ -155,6 +155,18 @@ open(unit=20, file='F_conf.dat', access='append')
 write(20,*)cc,F_conf
 close(20)
 
+! save probs
+do ii = 2, NS-2
+do ix = 1, dimx
+do i=1,newcuantas
+write(900+ii,*)pro(i,ix,ii)
+enddo
+enddo
+close(900+ii)
+enddo
+
+
+
 endif ! rank
 
 end subroutine
