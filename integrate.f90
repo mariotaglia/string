@@ -68,6 +68,7 @@ endif
 do ii = fs, ls ! loop over nodes
 avpol_tmp = 0.0
 do xx = startx(rank+1), endx(rank+1)
+!print*, ii,xx
 do i=1,newcuantas ! loop over cuantas
     do j=1,long
      k = in1n(i,j)
@@ -103,7 +104,7 @@ xh = 1.0-avpol
 !OJO
 !do ii = 2, NS-1
 !do i = 1, ntot
-!print*, i, ii, avpol2(i,ii), xh2(i,ii)
+!print*, rank, i, ii, avpol(i,ii)
 !enddo
 !enddo
 !stop
@@ -194,13 +195,13 @@ do xx = startx(rank+1), endx(rank+1)
 do i=1,newcuantas ! loop over cuantas
 arc(ii) = arc(ii)+ abs(pro(i,xx,ii-1)-pro(i,xx,ii))
 enddo
-enddo
-enddo
+enddo ! xx
+enddo ! ii
 
 arc_tmp = arc
 
-call MPI_REDUCE(arc_tmp, arc, NS-1, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
-call MPI_BCAST(arc, NS-1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, err)
+call MPI_REDUCE(arc_tmp, arc, NS, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
+call MPI_BCAST(arc, NS, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, err)
 
 sumarc = 0.0
 
@@ -212,7 +213,6 @@ enddo
 enddo
 
 sumarc = sumarc/sumarc(NS)
-
 !6. Redistribute prob
 
 do xx = startx(rank+1), endx(rank+1)
@@ -256,12 +256,11 @@ enddo
 enddo ! xx
 enddo ! ii
 
+
 !print*, norma_tmp
 
 call MPI_REDUCE(norma_tmp, norma, 1, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
 call MPI_BCAST(norma, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, err)
-
-!print*, norma
 
 norma = norma/STEP
 if(rank.eq.0) print*, iter, norma
