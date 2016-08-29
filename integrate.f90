@@ -155,14 +155,19 @@ pro0(i,xx,ii) = 1.0
      kx= mod(kx-1+50*dimx, dimx) + 1
      ky=mapy(k)
      k = imap(kx,ky)
-     pro0(i,xx,ii)= pro(i,xx,ii) * xpot(k,ii)
+     pro0(i,xx,ii)= pro0(i,xx,ii) * xpot(k,ii)
     enddo
 
     q(xx,ii)=q(xx,ii)+pro0(i,xx,ii)
 enddo ! i
-pro0(:,xx,ii) = pro0(:,xx,ii)/q(xx,ii)
+!pro0(:,xx,ii) = pro0(:,xx,ii)/q(xx,ii)
 enddo ! xx
+!if(ii.eq.1) then 
+!  print*, q(1,ii)
+!  stop
+!endif
 enddo ! ii
+
 
 !do i = 1, newcuantas
 !print*, i, pro0(i,1,2),pro0(i,1,3),pro0(i,1,4)
