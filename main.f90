@@ -198,6 +198,19 @@ call integration
 
 ! OK
 
+
+! save probs
+
+do ii = 2, NS-2
+do ix = 1, dimx
+do i=1,newcuantas
+write(900+ii,*)pro(i,ix,ii)
+enddo
+enddo
+close(900+ii)
+enddo
+
+
 do ii = 1, NS
 
 countfileuno = ii
