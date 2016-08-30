@@ -9,14 +9,13 @@ use kai
 use string
 use MPI
 
-
 implicit none
 real*8 qq(dimx,NS)
 real*8, external :: LINTERPOL
 integer*4 ier2
 real*8 xh(ntot,NS)
-real*8 xpot(ntot, NS)
 integer i,j,k1,k2,ii,kk, jj,iz       ! dummy indices
+real*8 xpot(ntot,NS)
 integer err
 integer n
 real*8 algo, algo1, algo3
@@ -24,8 +23,6 @@ real*8 algo2
 real*8 xtotal(ntot, NS)
 integer ix,iy,jx,jy,kx,ky,k
 integer, external :: imap, mapx, mapy
-real*8 avpol_tmp(ntot)
-real*8 avpol2(ntot,2:NS-1)
 real*8 aa
 integer fl(2)
 real*8 arc(NS), sumarc(NS), arc_tmp(NS)
@@ -56,49 +53,20 @@ pro_old = pro
 
 ! 1. Calculate avpol from the probabilities
 
+fs=2
+ls=NS-1
 
 if(iter.eq.1) then
  fs = 1
- ls = NS ! calculate avpol for extremes,  only for first iter
-else
- fs = 2
- ls = NS-1
+ call calc_avpol(fs)
+ ls = NS
+ call calc_avpol(ls)
 endif
 
-
-do ii = fs, ls ! loop over nodes
-avpol_tmp = 0.0
-do xx = startx(rank+1), endx(rank+1)
-!print*, ii,xx
-do i=1,newcuantas ! loop over cuantas
-    do j=1,long
-     k = in1n(i,j)
-     kx=mapx(k)+(xx-1)
-     kx= mod(kx-1+50*dimx, dimx) + 1
-     ky=mapy(k)
-     k = imap(kx,ky)
-     avpol_tmp(k)=avpol_tmp(k)+pro(i,xx,ii)*sigma*vsol/delta*vpol ! pro is normed
-     ky = dimy-ky+1
-     k = imap(kx,ky)
-     avpol_tmp(k)=avpol_tmp(k)+pro(i,xx,ii)*sigma*vsol/delta*vpol ! opposing wall
-    enddo
-enddo ! i
-enddo ! xx
-
-if(iter.eq.1) then
-  call MPI_REDUCE(avpol_tmp(:), avpol(:,ii), ntot, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
-  if((ii.gt.1).and.(ii.lt.NS))avpol2(:,ii) = avpol(:,ii)
-else
-  call MPI_REDUCE(avpol_tmp(:), avpol2(:,ii), ntot, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
-endif
-
-enddo ! ii
-
-if(iter.eq.1) then
-  call MPI_BCAST(avpol, ntot*NS, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, err) ! broadcast to everyone
-else
-  call MPI_BCAST(avpol2, ntot*(NS-2), MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, err) ! broadcast to everyone
-  avpol(:,2:NS-1) = avpol2(:,2:NS-1)
+if(infile.ne.1) then ! only skips this if infile = 1
+  do ii = 2, NS-1 ! loop over nodes
+  call calc_avpol(ii)
+  enddo ! ii
 endif
 
 xh = 1.0-avpol
@@ -178,6 +146,12 @@ enddo ! ii
 
 ! 4. Evolve system
 ! dP/dt = k(P0-P)
+
+if(infile.eq.1) then
+  pro = pro0
+  pro_old = pro0
+  infile = 0
+endif
 
 do ii = 2, NS-1 ! loop over beads
 do xx = startx(rank+1), endx(rank+1)
@@ -285,4 +259,46 @@ enddo ! norma
 
 avsol = xh
 end
+
+subroutine calc_avpol(ii)
+use brush
+use string
+use MPI
+use longs
+use layer
+use volume
+implicit none
+real*8 avpol_tmp(ntot)
+real*8 avpol_tmp2(ntot)
+integer xx
+integer i,j,k,kx,ky
+integer ii
+integer, external :: imap, mapx, mapy
+integer err
+
+avpol_tmp = 0.0
+avpol_tmp2 = 0.0
+do xx = startx(rank+1), endx(rank+1)
+!print*, ii,xx
+do i=1,newcuantas ! loop over cuantas
+    do j=1,long
+     k = in1n(i,j)
+     kx=mapx(k)+(xx-1)
+     kx= mod(kx-1+50*dimx, dimx) + 1
+     ky=mapy(k)
+     k = imap(kx,ky)
+     avpol_tmp(k)=avpol_tmp(k)+pro(i,xx,ii)*sigma*vsol/delta*vpol ! pro is normed
+     ky = dimy-ky+1
+     k = imap(kx,ky)
+     avpol_tmp(k)=avpol_tmp(k)+pro(i,xx,ii)*sigma*vsol/delta*vpol ! opposing wall
+    enddo
+enddo ! i
+enddo ! xx
+
+call MPI_REDUCE(avpol_tmp, avpol_tmp2, ntot, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
+call MPI_BCAST(avpol_tmp2, ntot, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, err) ! broadcast to everyone
+avpol(:,ii) = avpol_tmp2(:)
+end subroutine
+
+
 
