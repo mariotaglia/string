@@ -11,6 +11,7 @@ use MPI
 
 
 implicit none
+real*8 qq(dimx,NS)
 real*8, external :: LINTERPOL
 integer*4 ier2
 real*8 xh(ntot,NS)
@@ -43,7 +44,7 @@ do i = 2, NS-1
 xxout(i) = float(i-1)/float(NS-1)
 enddo
 
-norma = 1.0
+norma = 1.0e10
 q = 0.0
 
 do while (norma.gt.error)
@@ -238,16 +239,16 @@ enddo
 
 ! 7. Renorm q 
 
-!q = 0.0
-!do ii = 2, NS-1
-!do xx = startx(rank+1), endx(rank+1)
-!do i = 1, newcuantas
-!q(xx,ii) = q(xx,ii) + pro(i,xx,ii)
-!enddo
-!pro(:,xx,ii) = pro(:,xx,ii)/q(xx,ii)
-!enddo ! xx
+qq = 0.0
+do ii = 2, NS-1
+do xx = startx(rank+1), endx(rank+1)
+do i = 1, newcuantas
+qq(xx,ii) = qq(xx,ii) + pro(i,xx,ii)
+enddo
+pro(:,xx,ii) = pro(:,xx,ii)/qq(xx,ii)
+enddo ! xx
 !print*,'q', ii, q(1,ii)
-!enddo ! ii
+enddo ! ii
 
 !do i = 1, newcuantas
 !print*,i, pro(i,1,1),pro(i,1,2),pro(i,1,3),pro(i,1,4),pro(i,1,5)
