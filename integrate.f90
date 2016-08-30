@@ -91,6 +91,7 @@ if(iter.eq.1) then
 else
   call MPI_REDUCE(avpol_tmp(:), avpol2(:,ii), ntot, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
 endif
+
 enddo ! ii
 
 if(iter.eq.1) then
