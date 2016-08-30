@@ -26,7 +26,11 @@ xtotal(i) = avpol(i, cc)
 enddo
 
 q_tosend(:) = q(:,cc)
-pro_tosend(:,:) = pro(:,:,cc)
+
+pro_tosend = 0.0
+do ix = startx(rank+1), endx(rank+1)
+pro_tosend(:,ix) = pro(:,ix,cc)
+enddo
 
 ! recover all qs
 call MPI_REDUCE(q_tosend(:), q(:,cc), dimx, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, ierr)

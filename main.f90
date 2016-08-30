@@ -196,11 +196,13 @@ open(unit=10, file='out.out')
 
 call integration
 
+
 ! OK
 
 
 do ii = 1, NS
 
+call free_energy(ii)
 countfileuno = ii
 
 write(sysfilename,'(A7,BZ,I3.3,A1,I3.3,A4)')'system.', countfileuno,'.',countfile,'.dat'
@@ -241,7 +243,6 @@ close(310)
 CLOSE(321)
 close(330)
 
-call free_energy(ii)
 
 enddo ! ii
 
