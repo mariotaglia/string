@@ -1,8 +1,8 @@
-TARGET = brush-simple
+TARGET = brush-string
 
 #SRC = modules.f90 SPmain.f90 parser.f90 init.f90 allocation.f90 allocateell.f90 3D.f90 cadenas.f90 cadenasMK.f90 fe.f90  fkfun.f90  kai.f90  kinsol.f90  pxs.f90  savetodisk.f90 rands.f90 ellipsoid.f90 dielectric.f90 monomers.definitions-onck.f90 chains.definitions.f90 sphere.f90 kapfromfile.f90
 
-SRC = modules.f90 read.f90 allocation.f90 main.f90 fkfun.f90 cadenas.f90 rands.f90 kinsol.f90 kai.f90 fe.f90
+SRC = modules.f90 initmpi.f90 read.f90 allocation.f90 main.f90 integrate.f90 cadenas.f90 rands.f90 kai.f90 fe.f90 interp2.f90 maps.f90 
 
 HOST=$(shell hostname)
 $(info HOST is ${HOST})
@@ -19,6 +19,10 @@ LFLAGS = -L/shared/software/sundials-2.5.0-openmpi/lib -lsundials_fkinsol -lsund
 
 endif
 ifeq ($(HOST),mate.bme.northwestern.edu) 
+
+
+
+# LFLAGS = -lm /usr/lib/x86_64-linux-gnu/librt.so -L/home/mario/software/kinsol2.8.2/lib -lsundials_fkinsol -lsundials_kinsol -lsundials_fnvecserial -lsundials_nvecserial     -Wl,-rpath,/home/mario/software/kinsol2.8.2/lib
 
 
 LFLAGS = -L/home/mario/software/kinsol/lib -lsundials_fkinsol -lsundials_kinsol -lsundials_fnvecserial -lsundials_nvecserial -lm -L/usr/lib/gcc/x86_64-linux-gnu/4.6 -L/usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/4.6/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/4.6/../../.. -lgfortran -lm -lgcc_s -lquadmath
@@ -55,10 +59,10 @@ VER = ~/bin/multicapa_convex
 all:	$(TARGET)
 
 $(TARGET): $(SRC:.f90=.o)
-	$(FF) -o $(TARGET) $(SRC:.f90=.o) $(LFLAGS) $(GFLAGS)
+	$(FF) -o $(TARGET) $(SRC:.f90=.o) $(LFLAGS)
 
 $(SRC:.f90=.o): $(SRC)
-	${FF} -c ${FFLAGS}  $(SRC) $(LFLAGS) $(GFLAGS)
+	${FF} -c  $(SRC) $(FFLAGS) $(GFLAGS)
 
 install: all
 

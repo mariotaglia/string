@@ -1,3 +1,15 @@
+module MPI
+include 'mpif.h' ! librerias MPI
+integer rank, size, ierr
+integer flagsolver
+integer, allocatable :: endx(:), startx(:)
+endmodule
+
+
+module string
+integer NS, NS0, FIX
+real*8 STEP
+endmodule
 
 module mkinsol
 double precision, allocatable :: pp(:)
@@ -5,7 +17,7 @@ endmodule
 
 module kai
 integer Xulimit
-real*8, allocatable :: Xu(:)
+real*8, allocatable :: Xu(:,:)
 real*8 st
 end module
 
@@ -22,11 +34,13 @@ real*8 norma
 integer cuantas          ! number of polymer configuration or  bound sequences
 integer newcuantas          ! number of polymer configuration or  bound sequences
 
-integer ntot ! lattice sites
-real*8, allocatable :: avpol(:) ! volume fraction polymers already adsorbed
-real*8, allocatable :: avsol(:) ! volume fraction polymers already adsorbed
-real*8, allocatable :: pro(:)   ! probabilities
-integer*1, allocatable :: in1n(:,:)
+integer ntot, dimx, dimy ! lattice sites
+real*8, allocatable :: avpol(:,:) ! volume fraction polymers already adsorbed
+real*8, allocatable :: avsol(:,:) ! volume fraction polymers already adsorbed
+real*8, allocatable :: pro(:,:,:)   ! probabilities
+integer*4, allocatable :: in1n(:,:)
+
+
 real*8 sigma
 real*8 sigmas(100), sts(100)
 integer nst, nsigma
@@ -34,7 +48,7 @@ integer iter              ! counts number of iterations
 endmodule
 
 module partfunc
-real*8 q
+real*8, allocatable :: q(:,:)
 endmodule
 
 module layer

@@ -1,3 +1,65 @@
+subroutine creador
+
+use brush
+use layer
+use longs
+use MPI
+implicit none
+integer flag
+integer ncha,j,k
+integer temp
+integer conf
+real*8 chains(3,long,ncha_max) ! chains(x,i,l)= coordinate x of segement i ,x=2 y=3,z=1
+integer tempy, tempx
+integer, external :: imap, mapx, mapy
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! CHAIN GENERATION
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+if(rank.eq.0)print*, 'Calling RIS chain generator'
+in1n = 0
+
+call initcha              ! init matrices for chain generation
+conf=0                    ! counter of number of conformations
+
+newcuantas = 0
+
+do while (conf.lt.cuantas)
+call cadenas1(chains,ncha) ! generate only chains with first segment at z > 0
+
+do j=1,ncha
+  if(conf.lt.cuantas) then
+   conf=conf+1
+
+   flag = 0
+      do k=1,long
+        tempx=int(chains(2,k,j)/delta)+1  ! put segments into the correct layer
+        tempx= mod(tempx-1+50*dimx, dimx) + 1
+
+        tempy=int(chains(1,k,j)/delta)+1  ! put segments into the correct layer
+        if(tempy.gt.dimy)flag = 1
+      enddo ! k
+
+      if(flag.eq.0) then
+      newcuantas=newcuantas+1
+       do k=1,long
+        tempx=int(chains(2,k,j)/delta)+1  ! put segments into the correct layer
+        tempx= mod(tempx-1+50*dimx, dimx) + 1
+
+        tempy=int(chains(1,k,j)/delta)+1  ! put segments into the correct layer
+        temp = imap(tempx,tempy)
+        in1n(newcuantas,k) =  temp
+       enddo ! k
+      endif
+   endif
+enddo ! j
+enddo ! while
+
+print*,"Chains ready"
+end subroutine
+
+
 subroutine mrrrr(a,b,c)
 real*8 a(3,3),b(3,3),c(3,3)
 

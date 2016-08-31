@@ -5,10 +5,14 @@
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-
+use seed1
+call initmpi
 call read ! read input from input.txt
 call allocation ! allocate arrays in memory
+call MPIdist ! distribute grafting points among processors
 call kai ! generate poor solvent
+seed = 435
+call creador
 call solve ! solve the system
 end
 
@@ -21,7 +25,15 @@ use bulk
 use seed1
 use longs
 use kai
+use string
+use MPI
 implicit none
+
+real*8 suma
+real*8, external :: LINTERPOL
+real*8 xpos
+integer ix, iy
+integer, external :: imap, mapx, mapy
 
 integer ncha
 integer *4 ier ! Kinsol error flag
@@ -29,25 +41,26 @@ real*8 pi ! pi
 real*8 Na ! avogadros' number              
 parameter (Na=6.02d23)
 integer cc,ccc
-
-real*8 x1(ntot),xg1(ntot)   ! density solvent iteration vector
+real*8 vin(NS0), vout(NS-2)
+real*8 xinput(ntot,NS0)
+real*8 xoutput(ntot,NS)
+real*8 xxin(NS0), xxout(NS-2)
+integer*4 NI, NO
+real*8 x1((ntot+1)*(NS-2)),xg1((ntot+1)*(NS-2))   ! density solvent iteration vector
 real*8 zc(ntot)           ! z-coordinate layer 
-
+integer mid
 integer n                 ! number of lattice sites
 integer itmax             ! maximum number of iteration allowed for 
 real*8 fnorm              ! L2 norm of residual vector function fcn
 
 integer i,j,k,m,ii,flag,c, jj ! dummy indices
 
-INTEGER temp
+INTEGER temp, tempx, tempy
 real*8 tempr
 real*8 tmp
 
-REAL*8 xfile(ntot)                        
 real*8 algo, algo2                  
 
-real*8 chains(3,long,ncha_max) ! chains(x,i,l)= coordinate x of segement i ,x=2 y=3,z=1
-real*8 chainsw(ncha_max), sumweight_tosend
 real*8 zp(long)
 
 real*8 sum,sumel          ! auxiliary variable used in free energy computation  
@@ -60,21 +73,26 @@ character*28 denspolfilename
 
 integer countfile         ! enumerates the outputfiles 
 integer countfileuno     ! enumerates the outputfiles para una corrida
-integer conf              ! counts number of conformations
 
 integer readsalt          !integer to read salt concentrations
 
+
+integer tag, source
+parameter(tag = 0)
+integer err
+integer ierror
+
+
 seed=435               ! seed for random number generator
 
-print*, 'Program Simple Brush'
-print*, 'GIT Version: ', _VERSION
+if(rank.eq.0)print*, 'Program Simple Brush'
+if(rank.eq.0)print*, 'GIT Version: ', _VERSION
 
 
 !     initializations of variables 
 pi=dacos(-1.0d0)          ! pi = arccos(-1) 
 itmax=200                 ! maximum number of iterations       
 n=ntot                    ! size of lattice
-conf=0                    ! counter for conformations
 
 vsol=0.030                ! volume solvent molecule in (nm)^3
 vpol= ((4.0/3.0)*pi*(0.3)**3)/vsol  ! volume polymer segment in units of vsol
@@ -84,66 +102,78 @@ vpol= ((4.0/3.0)*pi*(0.3)**3)/vsol  ! volume polymer segment in units of vsol
 xsolbulk = 1.0
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Solver
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! read first and last
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!     init guess all 1.0 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+pro = 0.0
 
-do i=1,n
-xg1(i)=1.0
-x1(i)=1.0
-zc(i)= (i-0.5) * delta
+open(unit=30, file='firstp.dat')
+open(unit=31, file='lastp.dat')
+
+do ix = 1, dimx
+do i=1,newcuantas
+read(30,*)pro(i,ix,1)
+read(31,*)pro(i,ix,NS)
+enddo
 enddo
 
-!     init guess from files fort.100 (solvent) and fort.200 (potential)                      
+close(21)
+close(31)
 
-if (infile.ge.1) then
-do i=1,n
-read(100,*)tempr,x1(i) 
-xg1(i) = x1(i)  ! solvent
-enddo   
-endif
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Read probs from file
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! CHAIN GENERATION
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+do ii = 2, NS0-1
+do i=1,newcuantas
+do ix = 1, dimx
+read(800+ii,*, IOSTAT=ierror)pro(i,ix,ii)
+enddo
+enddo ! i
+enddo ! ix
+close(800+cc)
 
-print*, 'Calling RIS chain generator'
-in1n = 0
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!  make initial guess by interpolation
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-call initcha              ! init matrices for chain generation
-conf=0                    ! counter of number of conformations
+if(rank.eq.0)print*, 'Interpolation'
 
-newcuantas = 0
+do i = 1, NS0
+xxin(i) = float(i-1)/float(NS0-1)
+enddo
+do i = 2, NS-1
+xxout(i-1) = float(i-1)/float(NS-1)
+enddo
 
-do while (conf.lt.cuantas)
-call cadenas1(chains,ncha) ! generate only chains with first segment at z > 0
 
-do j=1,ncha
-  if(conf.lt.cuantas) then
-   conf=conf+1
+NI = NS0
+NO = NS-2
 
-   flag = 0
-      do k=1,long
-        temp=int(chains(1,k,j)/delta)+1  ! put segments into the correct layer
-           if(temp.gt.ntot)flag = 1
-      enddo ! k
+do i = 1, newcuantas
+do ix = 1, dimx
+ vin(1) = pro(i,ix,1)
+ vin(NS0) = pro(i,ix,NS)
+ do j = 2, NS0-1
+  vin(j) = pro(i,ix,j)
+ enddo
+do j = 1,NS-2
+  xpos = xxout(j)
+  vout(j) = LINTERPOL (NI, xxin, vin, xpos , IERR)
+enddo
 
-      if(flag.eq.0) then
-      newcuantas=newcuantas+1
-       do k=1,long
-        temp=int(chains(1,k,j)/delta)+1  ! put segments into the correct layer
-        in1n(newcuantas,temp) =  in1n(newcuantas,temp) + 1
-       enddo ! k
-      endif
-   endif
-enddo ! j
-enddo ! while
+do j = 2, NS-1
+pro(i,ix,j) = vout(j-1)
+enddo
 
-print*,"Chains ready"
+enddo
+enddo
 
+!!!!!!!!!!!!!! Auxiliary fields... !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+do i = 1,n
+zc(i)= (i-0.5) * delta
+enddo
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !     computation starts
@@ -157,24 +187,38 @@ do ccc = 1, nsigma
 st=sts(cc)
 sigma=sigmas(ccc)
 
-countfileuno=cc
-countfile=ccc
+countfile=cc+ccc-1
 
 iter=0                    ! iteration counter
 
-do i=1,n             ! initial gues for x1
-xg1(i)=x1(i)
-enddo
+open(unit=10, file='out.out')
 
 ! Call solver 
 
-   iter = 0
-   print*, 'solve: Enter solver ', ntot, ' eqs'
-   call call_kinsol(x1, xg1, ier)
+!do i = 1, newcuantas
+!print*, i, pro(i,1,1),pro(i,1,3),pro(i,1,5)
+!enddo
 
-do i=1,n
-avsol(i)=x1(i) ! retrive xsol from solution
-enddo
+! OJO
+!do ii = 1, NS
+!print*, ii, pro(1,1,ii)
+!enddo 
+!do ii = 1, NS
+!print*, ii, pro(10,1,ii)
+!enddo 
+!stop
+
+
+call integration
+
+
+! OK
+
+
+do ii = 1, NS
+
+call free_energy(ii)
+countfileuno = ii
 
 write(sysfilename,'(A7,BZ,I3.3,A1,I3.3,A4)')'system.', countfileuno,'.',countfile,'.dat'
 write(denspolfilename,'(A15,BZ,I3.3,A1,I3.3,A4)')'densitypolymer.',countfileuno,'.',countfile,'.dat'
@@ -185,8 +229,11 @@ open(unit=321,file=denspolfilename)
 open(unit=330,file=denssolfilename)
 
 do i=1,n
-write(321,*)zc(i),avpol(i)
-write(330,*)zc(i),avsol(i)
+ix = mapx(i)
+iy = mapy(i)
+
+write(321,*)ix,iy,avpol(i, ii)
+write(330,*)ix,iy,avsol(i, ii)
 enddo
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -205,17 +252,38 @@ write(310,*)'vpol        = ',vpol*vsol
 write(310,*)'cuantas     = ',cuantas
 write(310,*)'newcuantas     = ',newcuantas
 write(310,*)'iterations  = ',iter
+write(310,*)'index  = ',ii
 
 close(310)
 CLOSE(321)
 close(330)
 
-call free_energy
+
+enddo ! ii
 
 enddo
 enddo
-
+call MPI_FINALIZE(ierr) ! finaliza MPI
 stop
 
 end
+
+
+subroutine MPIdist
+use MPI
+use brush
+implicit none
+integer ppc
+integer i
+ppc = int(dimx/size)
+if(rank.eq.0)print*,'ppc', ppc
+do i = 1, size
+startx(i) = 1 + ppc*(i-1)
+endx(i) = startx(i)+ppc-1
+enddo
+endx(size) = dimx
+do i = 1, size
+if(rank.eq.0)print*,'Proc', i,'start', startx(i), 'end',endx(i)
+enddo
+end 
 
