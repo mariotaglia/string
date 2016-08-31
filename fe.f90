@@ -160,8 +160,8 @@ write(20,*)cc,F_conf
 close(20)
 
 ! save probs
-do ix = 1, dimx
 do i=1,newcuantas
+do ix = 1, dimx
 write(900+cc,*)pro(i,ix,cc)
 enddo
 enddo

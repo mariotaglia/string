@@ -80,6 +80,7 @@ integer readsalt          !integer to read salt concentrations
 integer tag, source
 parameter(tag = 0)
 integer err
+integer ierror
 
 
 seed=435               ! seed for random number generator
@@ -104,6 +105,8 @@ xsolbulk = 1.0
 ! read first and last
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+pro = 0.0
+
 open(unit=30, file='firstp.dat')
 open(unit=31, file='lastp.dat')
 
@@ -120,6 +123,8 @@ close(31)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Solver
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+if(infile.ne.1) then
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  make initial guess by interpolation
@@ -153,6 +158,31 @@ enddo
 
 enddo
 enddo
+
+else 
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Read probs from file
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! save probs
+do ii = 2, NS-1
+do i=1,newcuantas
+do ix = 1, dimx
+read(800+ii,*, IOSTAT=ierror)pro(i,ix,ii)
+enddo
+if(ierror.ne.0) then
+  if(rank.eq.0)print*, 'Found only ',i,'conformations in infile'
+  ierror = 0
+  exit
+endif
+enddo ! i
+enddo ! ix
+close(800+cc)
+
+endif
+
 
 !!!!!!!!!!!!!! Auxiliary fields... !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
