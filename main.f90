@@ -120,11 +120,24 @@ enddo
 close(21)
 close(31)
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Solver
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Read probs from file
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-if(infile.ne.1) then
+! save probs
+do ii = 2, NS0-1
+do i=1,newcuantas
+do ix = 1, dimx
+read(800+ii,*, IOSTAT=ierror)pro(i,ix,ii)
+enddo
+if(ierror.ne.0) then
+  if(rank.eq.0)print*, 'Found only ',i,'conformations in infile'
+  ierror = 0
+  stop
+endif
+enddo ! i
+enddo ! ix
+close(800+cc)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  make initial guess by interpolation
@@ -146,7 +159,10 @@ NO = NS-2
 do i = 1, newcuantas
 do ix = 1, dimx
  vin(1) = pro(i,ix,1)
- vin(2) = pro(i,ix,NS)
+ vin(NS0) = pro(i,ix,NS)
+ do j = 2, NS0-1
+  vin(j) = pro(i,ix,j)
+ enddo
 do j = 1,NS-2
   xpos = xxout(j)
   vout(j) = LINTERPOL (NI, xxin, vin, xpos , IERR)
@@ -158,31 +174,6 @@ enddo
 
 enddo
 enddo
-
-else 
-
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Read probs from file
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-! save probs
-do ii = 2, NS-1
-do i=1,newcuantas
-do ix = 1, dimx
-read(800+ii,*, IOSTAT=ierror)pro(i,ix,ii)
-enddo
-if(ierror.ne.0) then
-  if(rank.eq.0)print*, 'Found only ',i,'conformations in infile'
-  ierror = 0
-  exit
-endif
-enddo ! i
-enddo ! ix
-close(800+cc)
-
-endif
-
 
 !!!!!!!!!!!!!! Auxiliary fields... !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
