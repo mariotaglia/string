@@ -124,10 +124,9 @@ close(31)
 ! Read probs from file
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-! save probs
 do ii = 2, NS0-1
-do i=1,newcuantas
 do ix = 1, dimx
+do i=1,newcuantas
 read(800+ii,*, IOSTAT=ierror)pro(i,ix,ii)
 enddo
 if(ierror.ne.0) then
@@ -169,7 +168,7 @@ do j = 1,NS-2
 enddo
 
 do j = 2, NS-1
- pro(i,ix,j) = vout(j-1)
+! pro(i,ix,j) = vout(j-1)
 enddo
 
 enddo
