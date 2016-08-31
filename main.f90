@@ -168,7 +168,7 @@ do j = 1,NS-2
 enddo
 
 do j = 2, NS-1
-! pro(i,ix,j) = vout(j-1)
+pro(i,ix,j) = vout(j-1)
 enddo
 
 enddo
