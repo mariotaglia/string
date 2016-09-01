@@ -277,6 +277,18 @@ if(rank.eq.0) print*, iter, norma
 if(mod(iter,100).eq.0)write(10,*)iter, norma
 flush(10)
 
+if(mod(iter,500).eq.0) then
+! save probs
+ do ii = 1, NS
+ do i=1,newcuantas
+ do ix = 1, dimx
+  write(1900+ii,*)pro(i,ix,ii)
+ enddo
+ enddo
+ close(1900+ii)
+ enddo
+endif
+
 !stop
 enddo ! norma
 
