@@ -11,6 +11,7 @@ use MPI
 
 
 implicit none
+real*8 pro_tosend(cuantas,dimx)
 real*8 qq(dimx,NS)
 real*8, external :: LINTERPOL
 integer*4 ier2
@@ -277,8 +278,20 @@ if(rank.eq.0) print*, iter, norma
 if(mod(iter,100).eq.0)write(10,*)iter, norma
 flush(10)
 
-if(mod(iter,500).eq.0) then
 ! save probs
+if(mod(iter,500).eq.0) then
+
+pro_tosend = 0.0
+do ii = 2,NS-1
+do ix = startx(rank+1), endx(rank+1)
+pro_tosend(:,ix) = pro(:,ix,ii)
+enddo
+
+! recover pro()
+call MPI_REDUCE(pro_tosend(:,:), pro(:,:,ii), dimx*cuantas, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, ierr)
+enddo ! ii
+
+if(rank.eq.0) then
  do ii = 1, NS
  do i=1,newcuantas
  do ix = 1, dimx
@@ -287,7 +300,8 @@ if(mod(iter,500).eq.0) then
  enddo
  close(1900+ii)
  enddo
-endif
+endif ! rank
+endif ! iter/500
 
 !stop
 enddo ! norma

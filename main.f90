@@ -127,11 +127,11 @@ close(31)
 do ii = 2, NS0-1
 do i=1,newcuantas
 do ix = 1, dimx
-read(800+ii,*, IOSTAT=ierror)pro(i,ix,ii)
+read(800+ii,*)pro(i,ix,ii)
 enddo
 enddo ! i
+close(800+ii)
 enddo ! ix
-close(800+cc)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  make initial guess by interpolation
