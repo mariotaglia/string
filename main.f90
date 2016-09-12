@@ -9,6 +9,7 @@ use seed1
 call initmpi
 call read ! read input from input.txt
 call allocation ! allocate arrays in memory
+call makemaps
 call MPIdist ! distribute grafting points among processors
 call kai ! generate poor solvent
 seed = 435
@@ -27,13 +28,13 @@ use longs
 use kai
 use string
 use MPI
+use maps
 implicit none
 
 real*8 suma
 real*8, external :: LINTERPOL
 real*8 xpos
 integer ix, iy
-integer, external :: imap, mapx, mapy
 
 integer ncha
 integer *4 ier ! Kinsol error flag

@@ -1,21 +1,19 @@
-function imap(ix,iy)
+subroutine makemaps
 use brush
+use maps
 implicit none
-integer ix,iy,imap
-imap = ix+dimx*(iy-1)
-end function
+integer ix,iy,i
 
-function mapx(i)
-use brush
-implicit none
-integer mapx, i
-mapx = mod((i-1),dimx)+1
-endfunction 
+do ix = 1, dimx
+do iy = 1, dimy
+imap(ix,iy) = ix+dimx*(iy-1)
+enddo
+enddo
 
-function mapy(i)
-use brush
-implicit none
-integer mapy, i
-mapy = int((i-1)/dimx)+1
-endfunction
+do i = 1, dimx*dimy
+mapx(i) = mod((i-1),dimx)+1
+mapy(i) = int((i-1)/dimx)+1
+enddo
+
+end
 

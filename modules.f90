@@ -1,3 +1,8 @@
+module maps
+integer, allocatable :: imap(:,:)
+integer, allocatable :: mapx(:), mapy(:)
+endmodule
+
 module MPI
 include 'mpif.h' ! librerias MPI
 integer rank, size, ierr

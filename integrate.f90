@@ -1,4 +1,5 @@
 subroutine integration
+use maps
 use brush
 use partfunc
 use layer
@@ -24,7 +25,6 @@ real*8 algo, algo1, algo3
 real*8 algo2
 real*8 xtotal(ntot, NS)
 integer ix,iy,jx,jy,kx,ky,k
-integer, external :: imap, mapx, mapy
 real*8 avpol_tmp(ntot)
 real*8 avpol2(ntot,2:NS-1)
 real*8 aa

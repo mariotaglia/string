@@ -6,6 +6,7 @@ use bulk
 use kai
 use partfunc
 use MPI
+use maps
 implicit none
 
 integer cc
@@ -16,7 +17,6 @@ integer iz, ix, iy, jx, jy, kx,ky, i, j, k
 real*8 sumpi, sumrho
 real*8 xtotal(ntot)
 real*8 mupol
-integer, external :: imap, mapx, mapy
 real*8 q_tosend(dimx)
 real*8 pro_tosend(cuantas,dimx)
 

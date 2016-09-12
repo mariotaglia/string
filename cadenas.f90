@@ -4,6 +4,7 @@ use brush
 use layer
 use longs
 use MPI
+use maps
 implicit none
 integer flag
 integer ncha,j,k
@@ -11,7 +12,6 @@ integer temp
 integer conf
 real*8 chains(3,long,ncha_max) ! chains(x,i,l)= coordinate x of segement i ,x=2 y=3,z=1
 integer tempy, tempx
-integer, external :: imap, mapx, mapy
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! CHAIN GENERATION
