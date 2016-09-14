@@ -1,46 +1,32 @@
+module intg
+use string
+integer fs,ls
+real*8, allocatable :: xpot(:,:)
+real*8, allocatable :: pro0(:,:,:)
+real*8, allocatable :: xxout(:)
+endmodule
+
+
 subroutine integration
 use maps
 use brush
 use partfunc
-use layer
-use volume
-use bulk
-use longs
-use kai
-use string
 use MPI
-
+use intg
 
 implicit none
-real*8 pro_tosend(cuantas,dimx)
-real*8 qq(dimx,NS)
-real*8, external :: LINTERPOL
-integer*4 ier2
-real*8 xh(ntot,NS)
-real*8 xpot(ntot, NS)
-integer i,j,k1,k2,ii,kk, jj,iz       ! dummy indices
-integer err
-integer n
-real*8 algo, algo1, algo3
-real*8 algo2
-real*8 xtotal(ntot, NS)
-integer ix,iy,jx,jy,kx,ky,k
-real*8 avpol_tmp(ntot)
-real*8 avpol2(ntot,2:NS-1)
-real*8 aa
-integer fl(2)
-real*8 arc(NS), sumarc(NS), arc_tmp(NS)
-real*8 pro0(cuantas,dimx,NS)
+integer i, j, xx, ii
 real*8 pro_old(cuantas,dimx,NS)
-integer iter2
 real*8 norma_tmp
-real*8 error2
-integer xx
-real*8 xxout(2:NS-1)
-real*8 vin(1:NS)
-real*8 xpos
-integer fs, ls
+integer err
 
+! Allocate commons in intg
+
+allocate(xpot(ntot,NS))
+allocate (pro0(cuantas,dimx,NS))
+allocate (xxout(2:NS-1))
+
+! Set initial 
 do i = 2, NS-1
 xxout(i) = float(i-1)/float(NS-1)
 enddo
@@ -55,9 +41,8 @@ pro_old = pro
 
 !print*,'!1!'
 
-! 1. Calculate avpol from the probabilities
 
-
+! fs and ls have the first and last node to consider
 if(iter.eq.1) then
  fs = 1
  ls = NS ! calculate avpol for extremes,  only for first iter
@@ -66,6 +51,74 @@ else
  ls = NS-1
 endif
 
+
+! 1. Calculate avpol from the probabilities
+! NEED TO OPTIMIZE
+call calc_avpol
+
+! 2. Calculation of xpot
+call calc_xpot
+
+! 3. Calculation of pro0
+! NEED TO OPTIMIZE
+call calc_pro0
+
+! 4. Evolve system
+call evolve
+
+! 5. Calculate distance between beads
+call redistrib
+
+! 6. Renorm q 
+call renormq
+
+! calculate displacement
+norma_tmp = 0.0
+do ii = 2, NS-1
+do xx = startx(rank+1), endx(rank+1)
+do i = 1, newcuantas
+norma_tmp=norma_tmp + abs(pro(i,xx,ii)-pro_old(i,xx,ii))
+enddo
+enddo ! xx
+enddo ! ii
+
+
+!print*, norma_tmp
+
+call MPI_REDUCE(norma_tmp, norma, 1, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
+call MPI_BCAST(norma, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, err)
+
+norma = norma/STEP
+if(rank.eq.0) print*, iter, norma
+if(mod(iter,100).eq.0)write(10,*)iter, norma
+flush(10)
+
+! save probs
+if(mod(iter,500).eq.0) then
+  call saveprobs
+endif ! iter/500
+
+enddo ! norma
+end
+
+
+
+subroutine calc_avpol ! calculate avpol from probabilities
+use maps
+use brush
+use partfunc
+use layer
+use volume
+use bulk
+use longs
+use string
+use MPI
+use intg
+implicit none
+real*8 avpol_tmp(ntot)
+real*8 avpol2(ntot,2:NS-1)
+integer ii,xx,k,kx,ky,i, j
+integer err
 
 do ii = fs, ls ! loop over nodes
 avpol_tmp = 0.0
@@ -101,21 +154,27 @@ else
   avpol(:,2:NS-1) = avpol2(:,2:NS-1)
 endif
 
-xh = 1.0-avpol
+end subroutine
 
-!OJO
-!do ii = 2, NS-1
-!do i = 1, ntot
-!print*, rank, i, ii, avpol(i,ii)
-!enddo
-!enddo
-!stop
+subroutine calc_xpot
+use maps
+use brush
+use layer
+use volume
+use bulk
+use longs
+use kai
+use string
+use MPI
+use intg
 
+implicit none
+integer ii,i ,ix,iy,jx,jy,kx,ky,k
 
-! 2. Calculation of xpot
+avsol = 1.0-avpol
 do ii = fs, ls
 do i = 1, ntot
-xpot(i,ii) = xh(i,ii)**(vpol)
+xpot(i,ii) = avsol(i,ii)**(vpol)
  ix=mapx(i)
  iy=mapy(i)
 do jx = -Xulimit, Xulimit 
@@ -131,18 +190,20 @@ do jx = -Xulimit, Xulimit
  enddo ! jy
 enddo ! i
 enddo ! ii
-
-!OJO
-!do ii = 2, NS-1
-!do i = 1, ntot
-!print*, i, ii, xpot(i,ii)
-!enddo
-!enddo
-!stop
+end subroutine
 
 
+subroutine calc_pro0
+use maps
+use brush
+use partfunc
+use string
+use MPI
+use intg
+use longs
 
-! 3. Calculation of pro0
+implicit none
+integer ii, i, xx, j,k, kx,ky
 
 q(:,2:NS-1)=0.0d0                   ! init q to zero
 
@@ -164,38 +225,45 @@ pro0(i,xx,ii) = 1.0
 enddo ! i
 pro0(:,xx,ii) = pro0(:,xx,ii)/q(xx,ii)
 enddo ! xx
-!if(ii.eq.1) then 
-!  print*, q(1,ii)
-!  stop
-!endif
 enddo ! ii
+end subroutine
 
+subroutine evolve
+use maps
+use brush
+use string
+use MPI
+use intg
 
-!do i = 1, newcuantas
-!print*, i, pro0(i,1,2),pro0(i,1,3),pro0(i,1,4)
-!enddo
-!stop
-
-! 4. Evolve system
-! dP/dt = k(P0-P)
+implicit none
+integer ii,xx,i
 
 do ii = 2, NS-1 ! loop over beads
 do xx = startx(rank+1), endx(rank+1)
 do i=1,newcuantas ! loop over cuantas
 pro(i,xx,ii)=STEP*(pro0(i,xx,ii)-pro(i,xx,ii)) + pro(i,xx,ii) ! normalization is conserved
-!print*, i,xx,ii, pro0(i,xx,ii),pro(i,xx,ii)
 enddo
 enddo
 enddo
+end subroutine
 
-!do i = 1, newcuantas
-!print*, i, pro(i,1,1),pro(i,1,2),pro(i,1,3),pro(i,1,4),pro(i,1,5)
-!enddo
-!stop
+subroutine redistrib
+use maps
+use brush
+use string
+use MPI
+use intg
 
-! 5. Calculate distance between beads
+
+implicit none
+real*8 arc(NS), sumarc(NS), arc_tmp(NS)
+integer ii,xx,i, jj, j
+real*8, external :: LINTERPOL
+real*8 vin(1:NS)
+real*8 xpos
+integer err
+
 arc = 0.0
-
 arc(1) = 0.0 ! position of the fist point
 
 do ii = 2, NS ! loop over beads
@@ -222,9 +290,7 @@ enddo
 
 sumarc = sumarc/sumarc(NS)
 
-!print*, sumarc
-
-!6. Redistribute prob
+! Redistribute prob
 
 do xx = startx(rank+1), endx(rank+1)
 do i = 1, newcuantas
@@ -238,7 +304,22 @@ enddo
 enddo
 enddo
 
-! 7. Renorm q 
+end subroutine
+
+
+
+subroutine renormq
+use maps
+use brush
+use partfunc
+use string
+use MPI
+use intg
+
+
+implicit none
+integer ii, xx,i
+real*8 qq(dimx,NS)
 
 qq = 0.0
 do ii = 2, NS-1
@@ -248,38 +329,19 @@ qq(xx,ii) = qq(xx,ii) + pro(i,xx,ii)
 enddo
 pro(:,xx,ii) = pro(:,xx,ii)/qq(xx,ii)
 enddo ! xx
-!print*,'q', ii, q(1,ii)
 enddo ! ii
-
-!do i = 1, newcuantas
-!print*,i, pro(i,1,1),pro(i,1,2),pro(i,1,3),pro(i,1,4),pro(i,1,5)
-!enddo
+end subroutine
 
 
-! calculate displacement
-
-norma_tmp = 0.0
-do ii = 2, NS-1
-do xx = startx(rank+1), endx(rank+1)
-do i = 1, newcuantas
-norma_tmp=norma_tmp + abs(pro(i,xx,ii)-pro_old(i,xx,ii))
-enddo
-enddo ! xx
-enddo ! ii
-
-
-!print*, norma_tmp
-
-call MPI_REDUCE(norma_tmp, norma, 1, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
-call MPI_BCAST(norma, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, err)
-
-norma = norma/STEP
-if(rank.eq.0) print*, iter, norma
-if(mod(iter,100).eq.0)write(10,*)iter, norma
-flush(10)
-
-! save probs
-if(mod(iter,500).eq.0) then
+subroutine saveprobs
+use maps
+use brush
+use string
+use MPI
+use intg
+implicit none
+real*8 pro_tosend(cuantas,dimx)
+integer ii, ix, i
 
 pro_tosend = 0.0
 do ii = 2,NS-1
@@ -301,13 +363,5 @@ if(rank.eq.0) then
  close(1900+ii)
  enddo
 endif ! rank
-endif ! iter/500
 
-!stop
-enddo ! norma
-
-!print*, q
-
-avsol = xh
-end
-
+end subroutine
