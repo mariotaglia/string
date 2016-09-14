@@ -240,6 +240,7 @@ do i=1,12
 call rota(xend,xendr,long,test)   ! rotate chain conformation ncha time
 
 if (test.eq.1) then ! only those with all segments at z > 0
+
 ncha=ncha+1
 do j=1,long
  chains(1,j,ncha)=xendr(1,j)       ! output 
@@ -247,6 +248,18 @@ do j=1,long
  chains(3,j,ncha)=xendr(3,j)
 !print*, chains(1,j,ncha), j, ncha
 enddo
+
+! add also mirror image in x-y
+ncha=ncha+1
+do j=1,long
+ chains(1,j,ncha)=xendr(1,j)       ! output 
+ chains(2,j,ncha)=-xendr(2,j)
+ chains(3,j,ncha)=-xendr(3,j)
+!print*, chains(1,j,ncha), j, ncha
+enddo
+
+
+
 endif
 
 enddo
