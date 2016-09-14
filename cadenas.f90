@@ -309,6 +309,15 @@ do j=1,long
  chains(3,j,ncha)=xendr(3,j)
 !print*, chains(1,j,ncha), j, ncha
 enddo
+
+! add also mirror image in x-y
+ncha=ncha+1
+do j=1,long
+ chains(1,j,ncha)=xendr(1,j)       ! output 
+ chains(2,j,ncha)=-xendr(2,j)
+ chains(3,j,ncha)=-xendr(3,j)
+!print*, chains(1,j,ncha), j, ncha
+enddo
 endif
 
 enddo
