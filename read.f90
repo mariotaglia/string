@@ -13,7 +13,7 @@ read(8,*)nada
 read(8,*)NS0, NS
 
 read(8,*)nada
-read(8,*)FIX
+read(8,*)usecsr
 
 read(8,*),nada
 read(8,*),dimx, dimy

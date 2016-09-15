@@ -54,7 +54,8 @@ endif
 
 ! 1. Calculate avpol from the probabilities
 ! NEED TO OPTIMIZE
-call calc_avpol
+if(usecsr.eq.0)call calc_avpol
+if(usecsr.eq.1)call calc_avpol_csr
 
 ! 2. Calculation of xpot
 call calc_xpot

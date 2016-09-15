@@ -8,12 +8,14 @@ include 'mpif.h' ! librerias MPI
 integer rank, size, ierr
 integer flagsolver
 integer, allocatable :: endx(:), startx(:)
+integer ppc
 endmodule
 
 
 module string
-integer NS, NS0, FIX
+integer NS, NS0
 real*8 STEP
+integer usecsr
 endmodule
 
 module mkinsol
@@ -27,7 +29,6 @@ real*8 st
 end module
 
 module brush
-
 real*8 shift
 integer, parameter :: ncha_max = 700
 real*8 lseg

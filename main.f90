@@ -6,6 +6,8 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 use seed1
+use string
+implicit none
 call initmpi
 call read ! read input from input.txt
 call allocation ! allocate arrays in memory
@@ -14,6 +16,7 @@ call MPIdist ! distribute grafting points among processors
 call kai ! generate poor solvent
 seed = 435
 call creador
+if(usecsr.eq.1)call in2csr ! prepare csr matrixes for mkl
 call solve ! solve the system
 end
 
@@ -274,7 +277,6 @@ subroutine MPIdist
 use MPI
 use brush
 implicit none
-integer ppc
 integer i
 ppc = int(dimx/size)
 if(rank.eq.0)print*,'ppc', ppc
