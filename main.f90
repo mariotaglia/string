@@ -279,7 +279,7 @@ use brush
 implicit none
 integer i
 ppc = int(dimx/size)
-if(rank.eq.0)print*,'ppc', ppc
+if(rank.eq.0)print*,'ppc', ppc+1
 do i = 1, size
 startx(i) = 1 + ppc*(i-1)
 endx(i) = startx(i)+ppc-1
@@ -288,5 +288,6 @@ endx(size) = dimx
 do i = 1, size
 if(rank.eq.0)print*,'Proc', i,'start', startx(i), 'end',endx(i)
 enddo
+ppc = ppc + 1
 end 
 
