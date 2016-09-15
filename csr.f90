@@ -37,6 +37,15 @@ if(rank.eq.0) print*, 'Create CSR matrixes for mkl'
 
 nonzero = 0
 
+
+! DEBUG1. Print in1n
+!do i = 1, newcuantas
+!do j = 1, long
+!print*, i,j,in1n(i,j)
+!enddo
+!enddo
+!stop
+
 ! 1. Determine non-zeros
 ! it is the same for all processors and grafting points
 
@@ -44,12 +53,15 @@ do i = 1, newcuantas
  sparse = 0.0
  do j = 1, long
   if(sparse(in1n(i,j)).eq.0.0) then
-    sparse(in1n(i,j)) = 1.0
     nonzero = nonzero + 1
   endif
+    sparse(in1n(i,j)) = sparse(in1n(i,j)) + 1.0
  enddo ! j
+! DBUG : PRINT SPARSE
+!print*, i, sparse
 enddo ! i
- 
+!stop
+
 !2. Allocate arrays for csr format
 
 ALLOCATE (inc_values(nonzero, ppc))
@@ -94,21 +106,39 @@ do i = 1, newcuantas
    endif 
  enddo ! j
 
+! print*, i
+! print*, nse
+! print*, nsp
+
 ! nse and nsp now contains the element and position of conformation i
 
- pntrb(i,xx) = gidx(xxx) + 1 ! position of first element in the row in global list  
+ pntrb(i,xxx) = gidx(xxx) + 1 ! position of first element in the row in global list  
+
 do j = 1, idx ! values to add
  gidx(xxx) = gidx(xxx) + 1 ! increase total counter by one
-
- inc_values(gidx(xxx),xx) = nse(idx) ! store value
- inc_columns(gidx(xxx),xx) = nsp(idx) ! store position (1...dimx*dimy)
+ inc_values(gidx(xxx),xxx) = nse(j) ! store value
+ inc_columns(gidx(xxx),xxx) = nsp(j) ! store position (1...dimx*dimy)
 enddo ! j
+
+
+
+
 enddo ! i
 
-pntre(1:newcuantas-1,xx) = pntrb(2:newcuantas,xx)
-pntre(newcuantas,xx) = gidx(xxx) + 1
+pntre(1:newcuantas-1,xxx) = pntrb(2:newcuantas,xxx)
+pntre(newcuantas,xxx) = gidx(xxx) + 1
 
 enddo ! xx
+
+!print*, nonzero
+!print*, gidx(1)
+!print*, inc_values
+!print*, inc_columns
+!print*, pntrb
+!print*, pntre
+!stop
+
+
 end subroutine
 
 
@@ -128,10 +158,10 @@ use csr
 
 implicit none
 real*8 avpol_tmp(ntot)
+real*8 avpol_tmp2(ntot)
 real*8 avpol2(ntot,2:NS-1)
-integer ii,xx,k,kx,ky,i, j
+integer ii,xx,k,kx,ky,i, j, kk,xxx
 integer err
-real*8 lnpro(newcuantas)
 CHARACTER matdescra(6)
 
 matdescra(1) = "G"
@@ -140,9 +170,27 @@ matdescra(4) = "F"
 
 do ii = fs, ls ! loop over nodes
 avpol_tmp = 0.0
+
 do xx = startx(rank+1), endx(rank+1)
- call mkl_dcsrmv('T', newcuantas, dimx*dimy, 1.0d+0, matdescra, inc_values, inc_columns, pntrb, pntre, pro, 0.0d+0, avpol_tmp)
+xxx = xx - startx(rank+1) + 1 ! index of csr matrix
+
+avpol_tmp2 = 0.0
+
+ call mkl_dcsrmv('T', newcuantas, dimx*dimy, 1.0d+0, matdescra, inc_values(:,xxx), inc_columns(:,xxx), pntrb(:,xxx), pntre(:,xxx), & 
+ pro(:,xx,ii), 0.0d+0, avpol_tmp2)
+
+! opposing wall
+do k = 1, ntot
+avpol_tmp(k) = avpol_tmp(k) + avpol_tmp2(k)
+kx = mapx(k)
+ky = mapy(k)
+ky = dimy-ky+1
+kk = imap(kx,ky)
+avpol_tmp(kk) = avpol_tmp(kk) + avpol_tmp2(k)
+enddo
 enddo ! xx
+
+avpol_tmp = avpol_tmp*sigma*vsol*vpol/delta
 
 if(iter.eq.1) then
   call MPI_REDUCE(avpol_tmp(:), avpol(:,ii), ntot, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
@@ -158,6 +206,4 @@ else
   call MPI_BCAST(avpol2, ntot*(NS-2), MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, err) ! broadcast to everyone
   avpol(:,2:NS-1) = avpol2(:,2:NS-1)
 endif
-print*, 'OK'
-stop
 end subroutine

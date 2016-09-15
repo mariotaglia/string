@@ -57,6 +57,8 @@ endif
 if(usecsr.eq.0)call calc_avpol
 if(usecsr.eq.1)call calc_avpol_csr
 
+!print*, avpol
+
 ! 2. Calculation of xpot
 call calc_xpot
 
@@ -117,14 +119,18 @@ use MPI
 use intg
 implicit none
 real*8 avpol_tmp(ntot)
+real*8 avpol_tmp2(ntot)
 real*8 avpol2(ntot,2:NS-1)
-integer ii,xx,k,kx,ky,i, j
+integer ii,xx,k,kx,ky,i, j, kk
 integer err
 
 do ii = fs, ls ! loop over nodes
 avpol_tmp = 0.0
+
+
 do xx = startx(rank+1), endx(rank+1)
 !print*, ii,xx
+avpol_tmp2 = 0.0
 do i=1,newcuantas ! loop over cuantas
     do j=1,long
      k = in1n(i,j)
@@ -132,13 +138,23 @@ do i=1,newcuantas ! loop over cuantas
      kx= mod(kx-1+50*dimx, dimx) + 1
      ky=mapy(k)
      k = imap(kx,ky)
-     avpol_tmp(k)=avpol_tmp(k)+pro(i,xx,ii)*sigma*vsol/delta*vpol ! pro is normed
-     ky = dimy-ky+1
-     k = imap(kx,ky)
-     avpol_tmp(k)=avpol_tmp(k)+pro(i,xx,ii)*sigma*vsol/delta*vpol ! opposing wall
+     avpol_tmp2(k)=avpol_tmp2(k)+pro(i,xx,ii) ! pro is normed
     enddo
 enddo ! i
+
+! opposing wall
+do k = 1, ntot
+avpol_tmp(k) = avpol_tmp(k) + avpol_tmp2(k)
+kx = mapx(k)
+ky = mapy(k)
+ky = dimy-ky+1
+kk = imap(kx,ky)
+avpol_tmp(kk) = avpol_tmp(kk) + avpol_tmp2(k)
+enddo
 enddo ! xx
+
+avpol_tmp = avpol_tmp*sigma*vsol*vpol/delta
+
 
 if(iter.eq.1) then
   call MPI_REDUCE(avpol_tmp(:), avpol(:,ii), ntot, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
