@@ -64,7 +64,10 @@ call calc_xpot
 
 ! 3. Calculation of pro0
 ! NEED TO OPTIMIZE
-call calc_pro0
+if(usecsr.eq.0)call calc_pro0
+if(usecsr.eq.1)call calc_pro0_csr
+
+!call calc_pro0
 
 ! 4. Evolve system
 call evolve
@@ -241,6 +244,7 @@ pro0(i,xx,ii) = 1.0
     q(xx,ii)=q(xx,ii)+pro0(i,xx,ii)
 enddo ! i
 pro0(:,xx,ii) = pro0(:,xx,ii)/q(xx,ii)
+
 enddo ! xx
 enddo ! ii
 end subroutine

@@ -207,3 +207,50 @@ else
   avpol(:,2:NS-1) = avpol2(:,2:NS-1)
 endif
 end subroutine
+
+subroutine calc_pro0_csr
+use maps
+use brush
+use partfunc
+use string
+use MPI
+use intg
+use longs
+use csr
+
+implicit none
+integer ii, i, xx, j,k, kx,ky,xxx
+real*8 lnpro(newcuantas)
+real*8 lnxpot(ntot)
+CHARACTER matdescra(6)
+
+
+matdescra(1) = "G"
+matdescra(4) = "F"
+
+q(:,2:NS-1)=0.0d0                   ! init q to zero
+
+do ii = fs, ls ! loop over beads
+
+lnxpot(:) = log(xpot(:,ii))
+
+do xx = startx(rank+1), endx(rank+1)
+xxx = xx - startx(rank+1) + 1 ! index of csr matrix
+
+call mkl_dcsrmv('N', newcuantas, dimx*dimy, 1.0d+0, matdescra, &
+ inc_values(:,xxx), inc_columns(:,xxx), pntrb(:,xxx), pntre(:,xxx), &
+ lnxpot, 0.0d+0, lnpro)
+   
+pro0(:,xx,ii) = exp(lnpro(:))
+
+q(xx,ii) = sum(pro0(:,xx,ii))
+pro0(:,xx,ii) = pro0(:,xx,ii)/q(xx,ii)
+
+enddo ! xx
+enddo ! ii
+end subroutine
+
+
+
+
+
