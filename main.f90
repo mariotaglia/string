@@ -102,7 +102,7 @@ enddo
 
 !     init guess from files fort.100 (solvent) and fort.200 (potential)                      
 
-if (infile.ge.1) then
+if (infile.ne.0) then
 do i=1,n
 read(100,*)tempx,tempy, x1(i) 
 xg1(i) = x1(i)  ! solvent
