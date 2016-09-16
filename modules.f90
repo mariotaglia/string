@@ -8,7 +8,7 @@ include 'mpif.h' ! librerias MPI
 integer rank, size, ierr
 integer flagsolver
 integer, allocatable :: endx(:), startx(:)
-integer ppc
+integer, allocatable :: ppc(:)
 endmodule
 
 

@@ -23,7 +23,7 @@ integer err
 ! Allocate commons in intg
 
 allocate(xpot(ntot,NS))
-allocate (pro0(cuantas,dimx,NS))
+allocate (pro0(newcuantas,dimx,NS))
 allocate (xxout(2:NS-1))
 
 ! Set initial 

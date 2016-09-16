@@ -64,11 +64,11 @@ enddo ! i
 
 !2. Allocate arrays for csr format
 
-ALLOCATE (inc_values(nonzero, ppc))
-ALLOCATE (inc_columns(nonzero, ppc))
-ALLOCATE (pntrb(newcuantas, ppc))
-ALLOCATE (pntre(newcuantas, ppc))
-ALLOCATE (gidx(ppc))
+ALLOCATE (inc_values(nonzero, ppc(rank+1)))
+ALLOCATE (inc_columns(nonzero, ppc(rank+1)))
+ALLOCATE (pntrb(newcuantas, ppc(rank+1)))
+ALLOCATE (pntre(newcuantas, ppc(rank+1)))
+ALLOCATE (gidx(ppc(rank+1)))
 
 !3. Dump in1n into csr arrays
 

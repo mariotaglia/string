@@ -278,16 +278,24 @@ use MPI
 use brush
 implicit none
 integer i
-ppc = int(dimx/size)
-if(rank.eq.0)print*,'ppc', ppc+1
-do i = 1, size
-startx(i) = 1 + ppc*(i-1)
-endx(i) = startx(i)+ppc-1
+
+allocate(ppc(size))
+ppc = 0
+
+do i = 1, dimx
+ppc(mod(i,size)+1) = ppc(mod(i,size)+1) + 1
 enddo
-endx(size) = dimx
+
+startx(1) = 1
+endx(1) = 1 + ppc(1)-1
+
+do i = 2, size
+startx(i) = endx(i-1) + 1
+endx(i) = startx(i)+ppc(i)-1
+enddo
+
 do i = 1, size
 if(rank.eq.0)print*,'Proc', i,'start', startx(i), 'end',endx(i)
 enddo
-ppc = ppc + 1
 end 
 
