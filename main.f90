@@ -32,7 +32,7 @@ real*8 Na ! avogadros' number
 parameter (Na=6.02d23)
 integer cc,ccc
 
-real*8 x1(ntot),xg1(ntot)   ! density solvent iteration vector
+real*8 x1(ntot),xg1(ntot),f(ntot)   ! density solvent iteration vector
 real*8 zc(ntot)           ! z-coordinate layer 
 
 integer n                 ! number of lattice sites
@@ -180,8 +180,8 @@ enddo
 
    iter = 0
    print*, 'solve: Enter solver ', ntot, ' eqs'
-   call call_kinsol(x1, xg1, ier)
-
+   if(infile.ne.-1)call call_kinsol(x1, xg1, ier)
+   if(infile.eq.-1) call fkfun(x1,f,ier)
 do i=1,n
 write(101,*)i,i, x1(i)
 enddo
