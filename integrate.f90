@@ -17,7 +17,7 @@ use intg
 implicit none
 integer i, j, xx, ii
 real*8 pro_old(cuantas,dimx,NS)
-real*8 norma_tmp
+real*8 norma_tmp, norma1, norma2
 integer err
 
 ! Allocate commons in intg
@@ -71,32 +71,45 @@ if(usecsr.eq.1)call calc_pro0_csr
 
 ! 4. Evolve system
 call evolve
-
-! 5. Calculate distance between beads
-call redistrib
-
-! 6. Renorm q 
 call renormq
+
 
 ! calculate displacement
 norma_tmp = 0.0
 do ii = 2, NS-1
 do xx = startx(rank+1), endx(rank+1)
 do i = 1, newcuantas
-norma_tmp=norma_tmp + abs(pro(i,xx,ii)-pro_old(i,xx,ii))
+norma_tmp=norma_tmp + abs(pro(i,xx,ii)-pro_old(i,xx,ii))/pro(i,xx,ii)
 enddo
 enddo ! xx
 enddo ! ii
+call MPI_REDUCE(norma_tmp, norma1, 1, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
+call MPI_BCAST(norma1, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, err)
+norma1 = norma1/dimx/newcuantas/NS
 
 
-!print*, norma_tmp
+! 5. Calculate distance between beads
+call redistrib
 
-call MPI_REDUCE(norma_tmp, norma, 1, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
-call MPI_BCAST(norma, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, err)
 
-norma = norma/STEP
-if(rank.eq.0) print*, iter, norma
-if(mod(iter,100).eq.0)write(10,*)iter, norma
+! calculate displacement
+norma_tmp = 0.0
+do ii = 2, NS-1
+do xx = startx(rank+1), endx(rank+1)
+do i = 1, newcuantas
+norma_tmp=norma_tmp + abs(pro(i,xx,ii)-pro_old(i,xx,ii))/pro(i,xx,ii)
+enddo
+enddo ! xx
+enddo ! ii
+call MPI_REDUCE(norma_tmp, norma2, 1, MPI_DOUBLE_PRECISION, MPI_SUM,0, MPI_COMM_WORLD, err)
+call MPI_BCAST(norma2, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, err)
+norma2 = norma2/dimx/newcuantas/NS
+
+norma = norma2/norma1
+
+
+if(rank.eq.0) print*, iter, norma1,norma2,norma
+if(mod(iter,100).eq.0)write(10,*)iter, norma1,norma2,norma
 flush(10)
 
 ! save probs
@@ -262,7 +275,20 @@ integer ii,xx,i
 do ii = 2, NS-1 ! loop over beads
 do xx = startx(rank+1), endx(rank+1)
 do i=1,newcuantas ! loop over cuantas
-pro(i,xx,ii)=STEP*(pro0(i,xx,ii)-pro(i,xx,ii)) + pro(i,xx,ii) ! normalization is conserved
+!print*,pro(i,xx,ii), pro0(i,xx,ii), log(pro0(i,xx,ii)), log(pro(i,xx,ii))
+
+
+pro(i,xx,ii)=exp(STEP*(log(pro0(i,xx,ii))-log(pro(i,xx,ii))) + log(pro(i,xx,ii))) ! normalization is conserved
+!pro(i,xx,ii)=STEP*(log(pro0(i,xx,ii))-log(pro(i,xx,ii))) + pro(i,xx,ii) ! normalization is conserved
+
+
+
+if(pro(i,xx,ii).lt.0.0) then
+  print*, i, xx, ii, pro(i,xx,ii),'!'
+ stop
+endif
+!print*,pro(i,xx,ii) 
+
 enddo
 enddo
 enddo

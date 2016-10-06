@@ -156,10 +156,10 @@ NO = NS-2
 
 do i = 1, newcuantas
 do ix = 1, dimx
- vin(1) = pro(i,ix,1)
- vin(NS0) = pro(i,ix,NS)
+ vin(1) = log(pro(i,ix,1))
+ vin(NS0) = log(pro(i,ix,NS))
  do j = 2, NS0-1
-  vin(j) = pro(i,ix,j)
+  vin(j) = log(pro(i,ix,j))
  enddo
 do j = 1,NS-2
   xpos = xxout(j)
@@ -167,7 +167,7 @@ do j = 1,NS-2
 enddo
 
 do j = 2, NS-1
-pro(i,ix,j) = vout(j-1)
+pro(i,ix,j) = exp(vout(j-1))
 enddo
 
 enddo
