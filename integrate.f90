@@ -283,10 +283,10 @@ pro(i,xx,ii)=exp(STEP*(log(pro0(i,xx,ii))-log(pro(i,xx,ii))) + log(pro(i,xx,ii))
 
 
 
-if(pro(i,xx,ii).lt.0.0) then
-  print*, i, xx, ii, pro(i,xx,ii),'!'
- stop
-endif
+!if(pro(i,xx,ii).lt.0.0) then
+!  print*, i, xx, ii, pro(i,xx,ii),'!'
+! stop
+!endif
 !print*,pro(i,xx,ii) 
 
 enddo
@@ -316,7 +316,7 @@ arc(1) = 0.0 ! position of the fist point
 do ii = 2, NS ! loop over beads
 do xx = startx(rank+1), endx(rank+1)
 do i=1,newcuantas ! loop over cuantas
-arc(ii) = arc(ii)+ abs(pro(i,xx,ii-1)-pro(i,xx,ii))
+arc(ii) = arc(ii)+ abs(sqrt(pro(i,xx,ii-1))-sqrt(pro(i,xx,ii)))
 enddo
 enddo ! xx
 enddo ! ii
